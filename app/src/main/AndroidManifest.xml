@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Normal Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.Manifest.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.Manifest.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.location"
+        android:required="true" />
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
+    <application
+        android:name=".MyApplication"
+        android:allowBackup="false"
+        android:hardwareAccelerated="true"
+        android:icon="@drawable/ic_logo_pulse_rect"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:roundIcon="@drawable/ic_logo_pulse"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Survey"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".ui.activities.FarmerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activities.InputItemsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.DroneSprayActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.SolarPanelActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".data.local.UserSelectionDialog"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activities.AuthActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppSplash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activities.SurveyListActivity"
+            android:exported="false"
+            android:label="Owners List"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.NewSavedRecordsActivity"
+            android:exported="false"
+            android:label="Saved Records"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.MenuActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.SurveyActivity"
+            android:exported="false"
+            android:label="Survey Form"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.SavedRecordsActivity"
+            android:exported="false"
+            android:label="Saved Records"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.SentRecordsActivity"
+            android:exported="false"
+            android:label="Surveyed Records"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.SurveyFormActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Survey.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.activities.NotAtHomeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Survey.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.activities.ViewRecordActivity"
+            android:exported="false"
+            android:label="View Record"
+            android:theme="@style/Theme.Survey"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.activities.SettingsActivity"
+            android:exported="false"
+            android:label="Settings"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.DownloadedAreasActivity"
+            android:exported="false"
+            android:label="Synced Areas"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.PrivacyPolicyActivity"
+            android:exported="false"
+            android:label="Privacy Policy"
+            android:theme="@style/Theme.Survey" />
+        <activity
+            android:name=".ui.activities.OfflineViewpagerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Survey.NoActionBar" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+</manifest>

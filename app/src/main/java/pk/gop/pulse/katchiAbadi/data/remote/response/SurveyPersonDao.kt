@@ -1,0 +1,53 @@
+package pk.gop.pulse.katchiAbadi.data.remote.response
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.OnConflictStrategy.Companion.REPLACE
+import androidx.room.Query
+import androidx.room.Update
+import pk.gop.pulse.katchiAbadi.domain.model.SurveyPersonEntity
+
+@Dao
+interface SurveyPersonDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPerson(person: SurveyPersonEntity)
+
+    @Query("SELECT * FROM survey_persons WHERE surveyId = :surveyId")
+    suspend fun getPersonsBySurvey(surveyId: Long): List<SurveyPersonEntity>
+    @Query("SELECT * FROM survey_persons WHERE mauzaId = :mauzaId")
+    suspend fun getPersonsForCurrentMouza(mauzaId: Long): List<SurveyPersonEntity>
+   @Query("SELECT * FROM survey_persons ")
+    suspend fun getallPersons(): List<SurveyPersonEntity>
+    @Insert(onConflict = REPLACE)
+    suspend fun insertAll(persons: List<SurveyPersonEntity>)
+    @Query("DELETE FROM survey_persons WHERE mauzaId = :mauzaId")
+    suspend fun deleteByMauzaId(mauzaId: Long)
+
+    @Query("SELECT * FROM survey_persons WHERE surveyId = :surveyId")
+    suspend fun getPersonsForSurvey(surveyId: Long): List<SurveyPersonEntity>
+
+    @Query("SELECT * FROM survey_persons")
+    suspend fun getAllPersons(): List<SurveyPersonEntity>
+
+    @Query("""
+        SELECT growerCode 
+        FROM survey_persons 
+        WHERE surveyId IN (
+            SELECT pkId FROM new_surveys WHERE parcelId = :parcelId
+        )
+    """)
+    suspend fun getGrowerCodesForParcel(parcelId: Long): List<String>
+
+    @Query("SELECT * FROM survey_persons WHERE id = :id LIMIT 1")
+    suspend fun getPersonById(id: Long): SurveyPersonEntity?
+
+    @Query("SELECT * FROM survey_persons WHERE nic = :cnic LIMIT 1")
+    suspend fun getPersonByCnic(cnic: String): SurveyPersonEntity?
+
+    @Update
+    suspend fun updatePerson(person: SurveyPersonEntity)
+
+    @Query("SELECT * FROM survey_persons WHERE surveyId = :surveyId")
+    suspend fun getPersonsBySurveyId(surveyId: String): List<SurveyPersonEntity>
+}
