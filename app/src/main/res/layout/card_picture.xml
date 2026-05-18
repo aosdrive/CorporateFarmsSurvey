@@ -39,13 +39,7 @@
                 android:layout_weight="1"
                 android:gravity="center">
 
-                <ImageView
-                    android:id="@+id/image"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@string/picture_icon"
-                    android:src="@drawable/ic_camera_colored" />
+
             </LinearLayout>
 
             <LinearLayout

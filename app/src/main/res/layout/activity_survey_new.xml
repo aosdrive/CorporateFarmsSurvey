@@ -13,7 +13,7 @@
         android:orientation="vertical"
         android:paddingBottom="24dp">
 
-        <!-- Header Card (keep as before) -->
+        <!-- Header Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -57,7 +57,6 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Section Title -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -81,7 +80,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Zone Spinner -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -101,7 +99,6 @@
                     android:paddingEnd="44dp"
                     android:spinnerMode="dropdown" />
 
-                <!-- Division Spinner -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -121,7 +118,6 @@
                     android:paddingEnd="44dp"
                     android:spinnerMode="dropdown" />
 
-                <!-- Section Spinner -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -141,8 +137,6 @@
                     android:paddingEnd="44dp"
                     android:spinnerMode="dropdown" />
 
-
-                <!-- Farm Spinner -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -161,48 +155,7 @@
                     android:paddingStart="16dp"
                     android:paddingEnd="44dp"
                     android:spinnerMode="dropdown" />
-                <!-- Block Spinner -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="6dp"
-                    android:text="Block"
-                    android:textColor="#666666"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
 
-                <Spinner
-                    android:id="@+id/spinnerBlock"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/spinner_selector"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="44dp"
-                    android:spinnerMode="dropdown" />
-
-
-                <!-- Block Spinner -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="6dp"
-                    android:text="Plot"
-                    android:textColor="#666666"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <Spinner
-                    android:id="@+id/spinnerPlot"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/spinner_selector"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="44dp"
-                    android:spinnerMode="dropdown" />
-
-                <!-- Property Type Spinner (keep as before) -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -222,12 +175,11 @@
                     android:paddingEnd="44dp"
                     android:spinnerMode="dropdown" />
 
-                <!-- Ownership Status Spinner (keep as before) -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingBottom="6dp"
-                    android:text="Parcel Ownership"
+                    android:text="Owned/Lease"
                     android:textColor="#666666"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -242,213 +194,128 @@
                     android:paddingEnd="44dp"
                     android:spinnerMode="dropdown" />
 
-                <!-- Crop Spinner (keep as before) -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="6dp"
-                    android:text="Crop"
-                    android:textColor="#666666"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <Spinner
-                    android:id="@+id/etCrop"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/spinner_selector"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="44dp"
-                    android:spinnerMode="dropdown" />
-
-                <!-- Crop Type Spinner (keep as before) -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="6dp"
-                    android:text="Crop Type"
-                    android:textColor="#666666"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <Spinner
-                    android:id="@+id/etCropType"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/spinner_selector"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="44dp"
-                    android:spinnerMode="dropdown" />
-
-                <!-- Variety Spinner (keep as before) -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="6dp"
-                    android:text="Variety"
-                    android:textColor="#666666"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <Spinner
-                    android:id="@+id/etVariety"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/spinner_selector"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="44dp"
-                    android:spinnerMode="dropdown" />
-
-                <!-- Year and Area in Row with TextInputLayout -->
-
-
-                <!-- Year Input - Full Width -->
-                <!--                <com.google.android.material.textfield.TextInputLayout-->
-                <!--                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"-->
-                <!--                    android:layout_width="match_parent"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:layout_marginBottom="16dp"-->
-                <!--                    android:hint="Address"-->
-                <!--                    app:boxBackgroundMode="outline"-->
-                <!--                    app:boxCornerRadiusBottomEnd="8dp"-->
-                <!--                    app:boxCornerRadiusBottomStart="8dp"-->
-                <!--                    app:boxCornerRadiusTopEnd="8dp"-->
-                <!--                    app:boxCornerRadiusTopStart="8dp"-->
-                <!--                    app:boxStrokeColor="@color/forest_green"-->
-                <!--                    app:boxStrokeErrorColor="#D32F2F"-->
-                <!--                    app:helperText="Enter complete address"-->
-                <!--                    app:helperTextTextColor="#999999"-->
-                <!--                    app:hintTextColor="@color/forest_green"-->
-                <!--                    app:startIconDrawable="@android:drawable/ic_menu_mylocation"-->
-                <!--                    app:startIconTint="@color/forest_green">-->
-
-                <!--                    <com.google.android.material.textfield.TextInputEditText-->
-                <!--                        android:id="@+id/etAddress"-->
-                <!--                        android:layout_width="match_parent"-->
-                <!--                        android:layout_height="wrap_content"-->
-                <!--                        android:inputType="textPostalAddress|textCapSentences"-->
-                <!--                        android:maxLength="200"-->
-                <!--                        android:minLines="2"-->
-                <!--                        android:maxLines="4"-->
-                <!--                        android:gravity="start|top"-->
-                <!--                        android:textColor="#333333"-->
-                <!--                        android:textSize="15sp" />-->
-                <!--                </com.google.android.material.textfield.TextInputLayout>-->
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Year"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp"
-                    app:boxStrokeColor="@color/forest_green"
-                    app:boxStrokeErrorColor="#D32F2F"
-                    app:hintTextColor="@color/forest_green"
-                    app:startIconDrawable="@android:drawable/ic_menu_my_calendar"
-                    app:startIconTint="@color/forest_green">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etYear"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"
-                        android:maxLines="1"
-                        android:textColor="#333333"
-                        android:textSize="15sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Area Input - Full Width -->
-                <!--                <com.google.android.material.textfield.TextInputLayout-->
-                <!--                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"-->
-                <!--                    android:layout_width="match_parent"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:layout_marginBottom="16dp"-->
-                <!--                    android:hint="Area (Kanal/Marla, Max: 100)"-->
-                <!--                    app:boxBackgroundMode="outline"-->
-                <!--                    app:boxCornerRadiusBottomEnd="8dp"-->
-                <!--                    app:boxCornerRadiusBottomStart="8dp"-->
-                <!--                    app:boxCornerRadiusTopEnd="8dp"-->
-                <!--                    app:boxCornerRadiusTopStart="8dp"-->
-                <!--                    app:boxStrokeColor="@color/forest_green"-->
-                <!--                    app:boxStrokeErrorColor="#D32F2F"-->
-                <!--                    app:counterEnabled="false"-->
-                <!--                    app:helperTextTextColor="#999999"-->
-                <!--                    app:hintTextColor="@color/forest_green"-->
-                <!--                    app:startIconDrawable="@android:drawable/ic_dialog_map"-->
-                <!--                    app:startIconTint="@color/forest_green">-->
-
-                <!--                    <com.google.android.material.textfield.TextInputEditText-->
-                <!--                        android:id="@+id/etArea"-->
-                <!--                        android:layout_width="match_parent"-->
-                <!--                        android:layout_height="wrap_content"-->
-                <!--                        android:inputType="numberDecimal"-->
-                <!--                        android:maxLines="1"-->
-                <!--                        android:textColor="#333333"-->
-                <!--                        android:textSize="15sp" />-->
-                <!--                </com.google.android.material.textfield.TextInputLayout>-->
-
-                <!-- Solar Available Checkbox -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="#E8F5E9"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/forest_green"
-                    app:strokeWidth="1dp">
-
-                    <CheckBox
-                        android:id="@+id/cbGeometryCorrect"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="12dp"
-                        android:text="Solar Available"
-                        android:textColor="@color/forest_green"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </androidx.cardview.widget.CardView>
-
-
-                <!-- Sowing Spinner -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="6dp"
-                    android:text="Sowing"
-                    android:textColor="#666666"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <Spinner
-                    android:id="@+id/spinnerSowing"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/spinner_selector"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="44dp"
-                    android:spinnerMode="dropdown" />
-
-                <!-- Sowing Full Section (hidden until Yes selected) -->
+                <!-- FARM SURVEY FIELDS -->
                 <LinearLayout
-                    android:id="@+id/layoutSowingSection"
+                    android:id="@+id/layoutFarmSurveyFields"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:visibility="gone">
 
-                    <!-- Shared Sowing Date -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="6dp"
+                        android:text="Block"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spinnerBlock"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp"
+                        android:spinnerMode="dropdown" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="6dp"
+                        android:text="Plot"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spinnerPlot"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp"
+                        android:spinnerMode="dropdown" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="6dp"
+                        android:text="Crop"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/etCrop"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp"
+                        android:spinnerMode="dropdown" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="6dp"
+                        android:text="Crop Type"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/etCropType"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp"
+                        android:spinnerMode="dropdown" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="6dp"
+                        android:text="Variety"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/etVariety"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp"
+                        android:spinnerMode="dropdown" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="6dp"
+                        android:text="Irrigation Source"
+                        android:textColor="#666666"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spinnerIrrigationSource"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp"
+                        android:spinnerMode="dropdown" />
+
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
@@ -478,47 +345,35 @@
                             android:textSize="15sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Divider -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginBottom="10dp"
-                        android:background="#E0E0E0" />
-
-                    <!-- Sowing Persons Label -->
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="8dp"
-                        android:text="Sowing Person(s)"
-                        android:textColor="@color/forest_green"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <!-- Dynamic person cards injected here from code -->
-                    <LinearLayout
-                        android:id="@+id/layoutSowingPersonEntries"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-
-                    <!-- Add More Button -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddSowingPerson"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="12dp"
-                        android:text="+ Add More Person"
-                        android:textColor="@color/forest_green"
-                        android:textSize="13sp"
-                        app:cornerRadius="8dp"
-                        app:strokeColor="@color/forest_green"
-                        app:strokeWidth="1dp" />
-
                 </LinearLayout>
-                <!-- Remarks Input - SIMPLIFIED VERSION -->
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Year"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxStrokeColor="@color/forest_green"
+                    app:boxStrokeErrorColor="#D32F2F"
+                    app:hintTextColor="@color/forest_green"
+                    app:startIconDrawable="@android:drawable/ic_menu_my_calendar"
+                    app:startIconTint="@color/forest_green">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etYear"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLines="1"
+                        android:textColor="#333333"
+                        android:textSize="15sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
@@ -550,10 +405,13 @@
                         android:textColor="#333333"
                         android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Owner Information Card (keep as before) -->
+        <!-- ============================================ -->
+        <!-- LESSOR INFORMATION CARD (UPDATED) -->
+        <!-- ============================================ -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -570,6 +428,7 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
+                <!-- Section Title -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -587,12 +446,33 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Owner / Leasee Information"
+                        android:text="Lessor Information"
                         android:textColor="@color/forest_green"
                         android:textSize="18sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- ✅ NEW: Lessor Type Dropdown -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="6dp"
+                    android:text="Lessor Type"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/spinnerLessorType"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/spinner_selector"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="44dp"
+                    android:spinnerMode="dropdown" />
+
+                <!-- Action Buttons -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -601,12 +481,12 @@
                     android:weightSum="2">
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSelectOwner"
+                        android:id="@+id/btnSelectLessor"
                         android:layout_width="0dp"
                         android:layout_height="56dp"
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        android:text="Select from List"
+                        android:text="Select Lessor"
                         android:textColor="@color/white"
                         android:textStyle="bold"
                         app:backgroundTint="@color/forest_green"
@@ -616,7 +496,7 @@
                         app:iconTint="@color/white" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddNewPerson"
+                        android:id="@+id/btnAddNewLessor"
                         android:layout_width="0dp"
                         android:layout_height="56dp"
                         android:layout_marginStart="8dp"
@@ -631,17 +511,55 @@
                         app:iconTint="@color/white" />
                 </LinearLayout>
 
+                <!-- Selected Lessors Container -->
                 <LinearLayout
-                    android:id="@+id/layoutPersonEntries"
+                    android:id="@+id/layoutSelectedLessors"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingTop="16dp" />
 
+                <!-- Empty State -->
+                <LinearLayout
+                    android:id="@+id/layoutNoLessors"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/lessor_empty_bg"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="24dp"
+                    android:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:alpha="0.5"
+                        android:src="@android:drawable/ic_menu_myplaces"
+                        app:tint="#999999" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="No lessor selected"
+                        android:textColor="#999999"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Tap 'Select Lessor' or 'Add New' to begin"
+                        android:textColor="#BBBBBB"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Pictures Card -->
+        <!-- Pictures Card (unchanged) -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -740,7 +658,6 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <!-- Image Container with Empty State and Loading -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -753,7 +670,6 @@
                         android:layout_height="wrap_content"
                         android:minHeight="150dp">
 
-                        <!-- RecyclerView for Images -->
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/recyclerPictures"
                             android:layout_width="match_parent"
@@ -761,7 +677,6 @@
                             android:padding="8dp"
                             android:visibility="gone" />
 
-                        <!-- Empty State -->
                         <LinearLayout
                             android:id="@+id/layoutEmptyState"
                             android:layout_width="match_parent"
@@ -795,7 +710,6 @@
                                 android:textSize="12sp" />
                         </LinearLayout>
 
-                        <!-- Loading Indicator -->
                         <LinearLayout
                             android:id="@+id/layoutLoadingState"
                             android:layout_width="match_parent"
@@ -836,7 +750,6 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Submit Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSubmitSurvey"
             android:layout_width="match_parent"
@@ -855,7 +768,6 @@
             app:iconGravity="textStart"
             app:iconTint="@color/white" />
 
-        <!-- Hidden Views -->
         <EditText
             android:id="@+id/etPropertyType"
             android:layout_width="match_parent"

@@ -39,18 +39,18 @@
         <activity
             android:name=".ui.activities.FarmerActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.activities.InputItemsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Survey" />
-        <activity
-            android:name=".ui.activities.DroneSprayActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Survey" />
-        <activity
-            android:name=".ui.activities.SolarPanelActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Survey" />
+<!--        <activity-->
+<!--            android:name=".ui.activities.InputItemsActivity"-->
+<!--            android:exported="false"-->
+<!--            android:theme="@style/Theme.Survey" />-->
+<!--        <activity-->
+<!--            android:name=".ui.activities.DroneSprayActivity"-->
+<!--            android:exported="false"-->
+<!--            android:theme="@style/Theme.Survey" />-->
+<!--        <activity-->
+<!--            android:name=".ui.activities.SolarPanelActivity"-->
+<!--            android:exported="false"-->
+<!--            android:theme="@style/Theme.Survey" />-->
         <activity
             android:name=".data.local.UserSelectionDialog"
             android:exported="false" />
@@ -124,10 +124,6 @@
             android:exported="false"
             android:label="Privacy Policy"
             android:theme="@style/Theme.Survey" />
-        <activity
-            android:name=".ui.activities.OfflineViewpagerActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Survey.NoActionBar" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

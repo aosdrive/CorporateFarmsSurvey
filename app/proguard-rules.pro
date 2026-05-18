@@ -56,8 +56,8 @@
 
 
 -keep class kotlin.reflect.** { *; }
--keep class pk.gop.pulse.katchiAbadi.data.local.** { *; }
--keep class pk.gop.pulse.katchiAbadi.data.remote.** { *; }
+-keep class com.gop.survey.corporatefarm.data.local.** { *; }
+-keep class com.gop.survey.corporatefarm.data.remote.** { *; }
 
 
 # Retrofit

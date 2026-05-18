@@ -108,8 +108,7 @@
             android:layout_marginRight="3dp"
             android:layout_weight="1"
             android:contentDescription="@string/search_icon"
-            android:padding="@dimen/margin_3dp"
-            android:src="@drawable/search" />
+            android:padding="@dimen/margin_3dp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

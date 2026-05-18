@@ -9,7 +9,8 @@
     <color name="black">#FF000000</color>
     <color name="dark">#FF1E1E1E</color>
 
-<!--    <color name="parcel_green">#0C5835</color>-->
+
+    <!--    <color name="parcel_green">#0C5835</color>-->
     <color name="parcel_green">#00FF0A</color>
     <color name="parcel_red">#F5F5F5</color>
     <color name="parcel_blue">#0044FF</color>

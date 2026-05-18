@@ -75,7 +75,6 @@
             android:layout_marginEnd="@dimen/margin_2dp"
             android:layout_weight="1"
             android:background="@drawable/register_btn"
-            android:drawableStart="@drawable/baseline_arrow_back_ios_24"
             android:drawableTint="@color/white"
             android:gravity="center"
             android:minHeight="@dimen/margin_50dp"

@@ -1,0 +1,229 @@
+package com.gop.survey.corporatefarm.ui.activities
+
+import android.content.DialogInterface
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import com.gop.survey.corporatefarm.R
+import com.gop.survey.corporatefarm.adapter.NewSurveyAdapter
+import com.gop.survey.corporatefarm.common.Constants
+import com.gop.survey.corporatefarm.common.Resource
+import com.gop.survey.corporatefarm.common.Utility
+import com.gop.survey.corporatefarm.databinding.ActivitySavedRecordsBinding
+import com.gop.survey.corporatefarm.domain.model.NewSurveyNewEntity
+import com.gop.survey.corporatefarm.presentation.survey_list.NewSurveyViewModel
+import com.gop.survey.corporatefarm.presentation.util.ToastUtil
+
+@AndroidEntryPoint
+class NewSavedRecordsActivity : AppCompatActivity(), NewSurveyAdapter.OnItemClickListener {
+
+    private val viewModel: NewSurveyViewModel by viewModels()
+    private lateinit var binding: ActivitySavedRecordsBinding
+    private lateinit var adapter: NewSurveyAdapter
+
+    private var uploadType: String = Constants.UPLOAD_SINGLE_RECORD
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivitySavedRecordsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.forest_green)
+
+        supportActionBar?.title = "Saved Records (New)"
+
+        adapter = NewSurveyAdapter(this)
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.adapter = adapter
+
+        observeViewModel()
+    }
+
+
+    private fun observeViewModel() {
+        // Load the surveys with khewat info when activity starts
+
+
+        lifecycleScope.launch {
+            viewModel.surveysWithKhewat.collectLatest { surveysWithKhewat ->
+                adapter.submitList(surveysWithKhewat)
+
+                if (surveysWithKhewat.isNotEmpty()) {
+                    binding.recyclerView.visibility = android.view.View.VISIBLE
+                    binding.noRecordLayout.visibility = android.view.View.GONE
+                    binding.tvDetails.text = "Total Count: ${surveysWithKhewat.size}"
+                    binding.tvDetails.visibility = android.view.View.VISIBLE
+                } else {
+                    binding.recyclerView.visibility = android.view.View.GONE
+                    binding.noRecordLayout.visibility = android.view.View.VISIBLE
+                    binding.tvDetails.visibility = android.view.View.GONE
+                }
+            }
+        }
+
+        // Keep your existing upload and delete observers
+        lifecycleScope.launch {
+            viewModel.deleted.collect { result ->
+                when (result) {
+                    is Resource.Loading -> Utility.showProgressAlertDialog(
+                        this@NewSavedRecordsActivity,
+                        "Deleting..."
+                    )
+
+                    is Resource.Success -> {
+                        Utility.dismissProgressAlertDialog()
+                        ToastUtil.showShort(this@NewSavedRecordsActivity, "Deleted successfully")
+                        // Refresh the map if it exists
+                        refreshMapIfVisible()
+                    }
+
+                    is Resource.Error -> {
+                        Utility.dismissProgressAlertDialog()
+                        ToastUtil.showShort(
+                            this@NewSavedRecordsActivity,
+                            result.message ?: "Error deleting"
+                        )
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.uploaded.collect { result ->
+                when (result) {
+                    is Resource.Loading -> Utility.showProgressAlertDialog(
+                        this@NewSavedRecordsActivity,
+                        "Uploading..."
+                    )
+
+                    is Resource.Success -> {
+                        Utility.dismissProgressAlertDialog()
+                        ToastUtil.showShort(this@NewSavedRecordsActivity, "Uploaded successfully")
+                        if (uploadType == Constants.UPLOAD_ALL) {
+                            uploadNextSurvey()
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        Utility.dismissProgressAlertDialog()
+                        ToastUtil.showShort(
+                            this@NewSavedRecordsActivity,
+                            result.message ?: "Upload failed"
+                        )
+                        Log.e("Error", result.message ?: "Unknown error")
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun refreshMapIfVisible() {
+        // Send broadcast or use EventBus to notify map fragment
+        val intent = Intent("REFRESH_MAP")
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+    }
+
+
+    override fun onUploadClicked(survey: NewSurveyNewEntity) {
+
+        uploadType = Constants.UPLOAD_SINGLE_RECORD
+        if (Utility.checkInternetConnection(this)) {
+            viewModel.uploadData(this, survey)
+        } else {
+            Utility.dialog(this, "Please connect to the internet and try again.", "No Internet")
+        }
+    }
+
+    override fun onItemClicked(survey: NewSurveyNewEntity) {
+//        logSurveyData(survey)
+        val intent = Intent(this, ViewRecordActivity::class.java).apply {
+            putExtra("parcelNo", survey.parcelNo)
+            putExtra("uniqueId", survey.pkId)
+        }
+        startActivity(intent)
+    }
+
+    override fun onDeleteClicked(survey: NewSurveyNewEntity) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirm")
+            .setMessage("Do you really want to delete this record?")
+            .setPositiveButton("Yes") { _: DialogInterface, _: Int ->
+                viewModel.deleteData(survey)
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.upload_all_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.upload_all) {
+            if (Utility.checkInternetConnection(this)) {
+                AlertDialog.Builder(this)
+                    .setTitle("Confirm Upload")
+                    .setMessage("Upload all pending records?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        uploadType = Constants.UPLOAD_ALL
+                        uploadNextSurvey()
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            } else {
+                Utility.dialog(this, "Please connect to the internet first.", "No Internet")
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun uploadNextSurvey() {
+        lifecycleScope.launch {
+            val survey = viewModel.getOnePendingSurvey()
+            if (survey != null) {
+                viewModel.uploadData(this@NewSavedRecordsActivity, survey)
+            } else {
+                Utility.dismissProgressAlertDialog()
+                ToastUtil.showShort(this@NewSavedRecordsActivity, "All records Uploaded")
+            }
+        }
+    }
+
+//    private fun logSurveyData(survey: NewSurveyNewEntity) {
+//        Log.d("SurveyData", "=== SURVEY RECORD DATA ===")
+//        Log.d("SurveyData", "Primary Key ID: ${survey.pkId}")
+//        Log.d("SurveyData", "Property Type: ${survey.propertyType}")
+//        Log.d("SurveyData", "Ownership Status: ${survey.ownershipStatus}")
+//        Log.d("SurveyData", "Variety: ${survey.variety}")
+//        Log.d("SurveyData", "Crop Type: ${survey.cropType}")
+//        Log.d("SurveyData", "Crop: ${survey.crop}")
+//        Log.d("SurveyData", "Year: ${survey.year}")
+//        Log.d("SurveyData", "Area: ${survey.area}")
+//        Log.d("SurveyData", "Is Geometry Correct: ${survey.isGeometryCorrect}")
+//        Log.d("SurveyData", "Remarks: ${survey.remarks}")
+//        Log.d("SurveyData", "Mauza ID: ${survey.mauzaId}")
+//        Log.d("SurveyData", "Area Name: ${survey.areaName}")
+//        Log.d("SurveyData", "Parcel ID: ${survey.parcelId}")
+//        Log.d("SurveyData", "Parcel No: ${survey.parcelNo}")
+//        Log.d("SurveyData", "Sub Parcel No: ${survey.subParcelNo}")
+//        Log.d("SurveyData", "Status Bit: ${survey.statusBit}")
+//        Log.d("SurveyData", "=== END SURVEY DATA ===")
+//    }
+}
