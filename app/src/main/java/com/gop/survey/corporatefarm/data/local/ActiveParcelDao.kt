@@ -170,6 +170,18 @@ interface ActiveParcelDao {
     @Query("Update active_parcels set surveyStatusCode = :statusBit  where  centroid = :centroidGeom")
     suspend fun updateParcelSurveyStatus(statusBit: Int, centroidGeom: String): Int
 
+    @Query("SELECT * FROM active_parcels WHERE areaAssigned = :aoi AND isActivate = 1")
+    suspend fun getActiveParcelsByAoi(aoi: String): List<ActiveParcelEntity>
+
+    @Query("DELETE FROM active_parcels WHERE id = :id AND isLocallyDrawn = 1 AND surveyStatusCode != 2")
+    suspend fun deleteLocalDrawnParcelById(id: Long): Int
+
+    @Query("""
+        DELETE FROM active_parcels
+        WHERE areaAssigned = :tehsil
+          AND id NOT IN (:keepIds)
+    """)
+    suspend fun deleteParcelsForTehsilExcept(tehsil: String, keepIds: List<Long>): Int
 
 }
 

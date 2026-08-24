@@ -65,17 +65,17 @@ class LoginFragment : Fragment() {
         hideStatusBar()
         binding.apply {
 
-//            tvFooter.text =
-//                tvFooter.text.toString().replace("Version", "Version ${Constants.VERSION_NAME}")
+            tvFooter.text =
+                tvFooter.text.toString().replace("Version", "Version ${Constants.VERSION_NAME}")
 
             btnLogin.setOnClickListener {
                 requireActivity().let { activity -> Utility.closeKeyBoard(activity) }
                 if (Utility.checkInternetConnection(requireContext())) {
-                    val cnic = getCNIC()?.trim()
-                    cnic?.let {
+                    val username = getUsername()?.trim()
+                    username?.let {
                         val password = getPassword()
                         password?.let {
-                            viewModel.login(cnic, password)
+                            viewModel.login(username, password)
                         }
                     }
                 } else {
@@ -298,6 +298,21 @@ class LoginFragment : Fragment() {
 
         return cnic
     }
+
+    private fun getUsername(): String? {
+        val username = binding.etUsername.text.toString().trim()
+
+        if (username.isEmpty()) {
+            binding.etUsername.apply {
+                error = resources.getString(R.string.error_username_field_empty)
+                requestFocus()
+            }
+            return null
+        }
+
+        return username
+    }
+
     private fun getPassword(): String? {
         val password = binding.etPassword.text.toString()
 

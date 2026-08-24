@@ -53,9 +53,15 @@ class Utility {
             return dist * 1000
         }
 
-        private lateinit var dialog: AlertDialog
+        // Nullable, and always cleared on dismiss. A non-null value here is a static
+        // reference to the hosting Activity, so it must not outlive the dialog.
+        private var dialog: AlertDialog? = null
 
         fun showProgressAlertDialog(mAct: Context, message: String) {
+
+            // Never orphan a previous dialog: overwriting the field would leave it
+            // on screen with no way to dismiss it.
+            dismissProgressAlertDialog()
 
             val builder = AlertDialog.Builder(mAct)
             val inflater = LayoutInflater.from(mAct)
@@ -68,18 +74,17 @@ class Utility {
             builder.setCancelable(false) // Prevent dismissing the dialog by tapping outside
 
             // Create the dialog and set its style
-            dialog = builder.create()
-
-            // Show the dialog
-            dialog.show()
+            dialog = builder.create().also { it.show() }
         }
 
         fun dismissProgressAlertDialog() {
+            val current = dialog ?: return
+            dialog = null // drop the static reference first, even if dismiss() fails
             try {
-                if (dialog.isShowing)
-                    dialog.dismiss()
+                if (current.isShowing)
+                    current.dismiss()
             } catch (e: Exception) {
-
+                Log.w("Utility", "Progress dialog dismiss failed", e)
             }
         }
 
@@ -144,59 +149,6 @@ class Utility {
             alert.show()
         }
 
-        fun mockLocationCheck(activity: Activity) {
-            if (isMockSettingsON(activity) && areThereMockPermissionApps(activity)) {
-                exitApplication(
-                    "Warning!",
-                    "Please disable mock/fake location. The application will exit now.",
-                    activity
-                )
-                return
-            }
-        }
-
-        fun mockLocationSettingCheck(activity: Activity): Boolean {
-            return isMockSettingsON(activity) && areThereMockPermissionApps(activity)
-        }
-
-        private fun isMockSettingsON(activity: Activity): Boolean {
-            // returns true if mock location enabled, false if not enabled.
-            return Settings.Secure.getString(
-                activity.contentResolver,
-                Settings.Secure.ALLOW_MOCK_LOCATION
-            ) != "0"
-        }
-
-        private fun areThereMockPermissionApps(activity: Activity): Boolean {
-            var count = 0
-            val pm: PackageManager = activity.packageManager
-            val packages: List<ApplicationInfo> =
-                pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            for (applicationInfo in packages) {
-                try {
-                    val packageInfo: PackageInfo = pm.getPackageInfo(
-                        applicationInfo.packageName,
-                        PackageManager.GET_PERMISSIONS
-                    )
-                    // Get Permissions
-                    val requestedPermissions = packageInfo.requestedPermissions
-                    if (requestedPermissions != null) {
-                        for (i in requestedPermissions.indices) {
-                            if ((requestedPermissions[i]
-                                        == "android.permission.ACCESS_MOCK_LOCATION") && applicationInfo.packageName != activity.packageName
-                            ) {
-                                count++
-                            }
-                        }
-                    }
-                } catch (e: PackageManager.NameNotFoundException) {
-                    //		        Log.e("Got exception " + e.getMessage());
-                    Toast.makeText(activity, "Error is" + e.message, Toast.LENGTH_LONG).show()
-                }
-            }
-            return count > 0
-        }
-
         fun closeKeyBoard(activity: Activity?) {
             try {
                 if (activity != null) {
@@ -225,66 +177,6 @@ class Utility {
             val network = connectivityManager.activeNetwork
             val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
             return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-        }
-
-        fun hasSingleDigit(numberString: String): Boolean {
-            // Check if the string is "0000000000000", return false
-//            if (numberString == "0000000000000") {
-//                return false
-//            }
-
-            // Check if all characters in the string are the same
-            return numberString.all { it == numberString[0] } || (numberString.substring(0, 5)
-                .toSet().size == 1)
-        }
-
-        fun isMinLength(editText: EditText, minLength: Int): Boolean {
-            return editText.text.toString().length >= minLength
-        }
-
-        fun isMinLengthAndNoDuplicates(editText: EditText, minLength: Int): Boolean {
-            val inputText = editText.text.toString().lowercase()
-
-            // Check minimum length
-            if (inputText.length < minLength) {
-                return false
-            }
-
-            // Check for different characters
-            val firstChar = inputText[0]
-            for (char in inputText) {
-                if (char != firstChar) {
-                    // Different character found
-                    return true
-                }
-            }
-
-            // All characters are the same
-            return false
-        }
-
-
-//        fun isEmulator(): Boolean {
-//            return Build.FINGERPRINT.startsWith("generic") ||
-//                    Build.FINGERPRINT.startsWith("unknown") ||
-//                    Build.MODEL.contains("google_sdk") ||
-//                    Build.MODEL.contains("Emulator") ||
-//                    Build.MODEL.contains("Pixel") ||
-//                    Build.MODEL.contains("Android SDK built for x86") ||
-//                    Build.MANUFACTURER.contains("Genymotion") ||
-//                    Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic") ||
-//                    "google_sdk" == Build.PRODUCT
-//        }
-
-//        fun isEmulator(): Boolean {
-//            return Build.PRODUCT.contains("API")
-//        }
-
-        fun isEmulator(): Boolean {
-            return Build.FINGERPRINT.startsWith("generic") ||
-                    Build.FINGERPRINT.contains("generic_x86") ||
-                    Build.FINGERPRINT.contains("vbox") ||
-                    Build.FINGERPRINT.contains("emu")
         }
 
         fun convertStringToDate(inputDate: String): String {
@@ -361,53 +253,6 @@ class Utility {
             }
         }
 
-        fun areDatesSame(
-            currentLocation: String,
-            gpsTimestamp: String,
-            currentMobileTimestamp: String
-        ): Boolean {
-            val dateFormat =
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Extract date part only
-            return try {
-                // Parse the gpsTimestamp and currentMobileTimestamp
-                val date2 =
-                    dateFormat.parse(gpsTimestamp.split('T')[0]) // Extract date from gpsTimestamp
-                val date3 =
-                    dateFormat.parse(currentMobileTimestamp.split('T')[0]) // Extract date from currentMobileTimestamp
-
-                if (currentLocation.isEmpty()) {
-                    // Compare only gpsTimestamp and currentMobileTimestamp
-                    date2 == date3
-                } else {
-                    // Parse currentLocation and compare all three
-                    val date1 = dateFormat.parse(currentLocation.split('T')[0])
-                    date1 == date2 && date2 == date3
-                }
-            } catch (e: Exception) {
-                false // Return false if parsing fails
-            }
-        }
-
-        fun convertToKanalMarlaSqFeet(areaInSqFeet: Long, sqFeetPerMarla: Int): String {
-            // Constants
-            val marlasPerKanal = 20
-
-            // Calculate total Marlas
-            val totalMarlas = areaInSqFeet / sqFeetPerMarla
-
-            // Calculate remaining square feet after converting to Marlas
-            val remainingSqFeet = areaInSqFeet % sqFeetPerMarla
-
-            // Calculate Kanals from Marlas
-            val kanals = totalMarlas / marlasPerKanal
-
-            // Calculate remaining Marlas after converting to Kanals
-            val remainingMarlas = totalMarlas % marlasPerKanal
-
-            // Return the result in the format "X Kanals Y Marlas Z Square Feet"
-            return "$kanals-$remainingMarlas-$remainingSqFeet"
-        }
-
         fun simplifyPolygon(polygon: Polygon): Polygon {
             return try {
                 // buffer(0.0) cleans self-intersections without distorting the shape
@@ -419,10 +264,6 @@ class Utility {
             }
         }
 
-        /**
-         * Unified WKT parser. Handles POLYGON, POLYGON((...)), and MULTIPOLYGON correctly
-         * by extracting each ring as its own Part using paren-depth tracking.
-         */
         fun parseWktToPolygon(wkt: String, sr: SpatialReference): Polygon? {
             return try {
                 if (wkt.isBlank()) return null
@@ -433,7 +274,7 @@ class Utility {
                     return null
                 }
 
-                val builder = PolygonBuilder(sr)  // ✅ use PolygonBuilder instead of PartCollection
+                val builder = PolygonBuilder(sr)  // use PolygonBuilder instead of PartCollection
 
                 for (ringCoords in rings) {
                     val points = PointCollection(sr)
@@ -462,10 +303,7 @@ class Utility {
                 null
             }
         }
-        /**
-         * Extracts each innermost ring as a list of coordinate strings using paren depth.
-         * Works for POLYGON, POLYGON((ring), (hole)), and MULTIPOLYGON(((ring)), ((ring))).
-         */
+
         private fun extractRingsFromWkt(wkt: String): List<List<String>> {
             val rings = mutableListOf<List<String>>()
             val firstParen = wkt.indexOf('(')
@@ -531,40 +369,12 @@ class Utility {
         fun getPolyFromString(wkt: String, sr: SpatialReference): Polygon? =
             parseWktToPolygon(wkt, sr)
 
-        // Helper function to parse coordinate string into PointCollection
-        private fun parseCoordinateString(
-            coordinateString: String,
-            wgs84: SpatialReference
-        ): PointCollection {
-            val points = PointCollection(wgs84)
 
-            try {
-                val coordinates = coordinateString.split(",")
-
-                for (coordinate in coordinates) {
-                    val trimmed = coordinate.trim()
-                        .replace("(", "")
-                        .replace(")", "")
-
-                    val pointSplit = trimmed.split(Regex("""\s+""")).filter { it.isNotEmpty() }
-
-                    if (pointSplit.size >= 2) {
-                        val x = pointSplit[0].toDoubleOrNull()
-                        val y = pointSplit[1].toDoubleOrNull()
-
-                        if (x != null && y != null) {
-                            points.add(Point(x, y, wgs84))
-                        } else {
-                            Log.w("GEOMETRY_PARSE", "Invalid coordinate pair: $trimmed")
-                        }
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.e("GEOMETRY_PARSE", "Error parsing coordinates: ${e.message}", e)
-            }
-
-            return points
+        fun formatArea(acres: Double): String = when {
+            acres <= 0.0        -> "—"
+            acres >= 1000       -> String.format("%,.0f acres", acres)
+            else                -> String.format("%.2f acres", acres)
         }
+
     }
 }

@@ -180,20 +180,12 @@ interface ServerApi {
         @Header("Authorization") token: String
     ): Response<List<ZoneDto>>
 
-    /**
-     * Fetch divisions filtered by zone ID
-     * Call after user selects a zone (if not using pre-fetched data)
-     */
     @GET("api/MobileDataCorporate/divisions/{zoneId}")
     suspend fun getDivisions(
         @Header("Authorization") token: String,
         @Path("zoneId") zoneId: Long
     ): Response<List<DivisionDto>>
 
-    /**
-     * Fetch sections filtered by division ID
-     * Call after user selects a division (if not using pre-fetched data)
-     */
     @GET("api/MobileDataCorporate/sections/{divisionId}")
     suspend fun getSections(
         @Header("Authorization") token: String,
@@ -206,10 +198,6 @@ interface ServerApi {
         @Path("sectionId") sectionId: Long
     ): Response<List<FarmDto>>
 
-    /**
-     * Fetch blocks filtered by section ID
-     * Call after user selects a section (if not using pre-fetched data)
-     */
     @GET("api/MobileDataCorporate/blocks/{farmId}")
     suspend fun getBlocks(
         @Header("Authorization") token: String,
@@ -225,6 +213,17 @@ interface ServerApi {
 
     @GET("api/CorporateManagement/GetAllLessors")
     suspend fun getAllLessors(): Response<List<LessorEntity>>
-
+    @GET("api/MobileDataCorporate/GetCorporatePropertyTypes")
+    suspend fun getPropertyTypes(): Response<List<DropdownItem>>
+    @GET("api/CorporateShapefile/GetAOIByTehsil")
+    suspend fun getAOIByTehsil(
+        @Header("Authorization") token: String,
+        @Query("tehsil") tehsil: String
+    ): Response<ResponseBody>
+    @GET("api/CorporateShapefile/GetSurveyedParcelsByTehsil")
+    suspend fun getSurveyedParcelsByTehsil(
+        @Header("Authorization") token: String,
+        @Query("tehsil") tehsil: String
+    ): Response<ResponseBody>
 
 }

@@ -8,10 +8,6 @@ import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
@@ -20,7 +16,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.gop.survey.corporatefarm.R
 import com.gop.survey.corporatefarm.adapter.SavedAdapter
 import com.gop.survey.corporatefarm.common.Constants
 import com.gop.survey.corporatefarm.common.Resource
@@ -51,9 +46,6 @@ class SavedRecordsActivity : AppCompatActivity(), SavedItemClickListener {
 
     private var uploadType: String = Constants.UPLOAD_SINGLE_RECORD
 
-    // Hold full list for filtering
-    private var fullList: List<SurveyMergeDetails> = emptyList()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySavedRecordsBinding.inflate(layoutInflater)
@@ -61,24 +53,20 @@ class SavedRecordsActivity : AppCompatActivity(), SavedItemClickListener {
         setContentView(binding.root)
         context = this
 
-        // ============ Premium header — hide ActionBar ============
+        // Hide default ActionBar — we have our own compact header
         supportActionBar?.hide()
 
-        // ============ Match status bar with header ============
+        // Status bar matches header
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.parseColor("#1B5E20")
         }
 
         setupRecyclerView()
-        setupSearch()
-        setupActionButtons()
+        setupHeaderButtons()
         observeViewModel()
         observeCounts()
     }
 
-    // ============================================
-    // SETUP — RecyclerView
-    // ============================================
     private fun setupRecyclerView() {
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@SavedRecordsActivity)
@@ -86,55 +74,16 @@ class SavedRecordsActivity : AppCompatActivity(), SavedItemClickListener {
         }
     }
 
-    // ============================================
-    // SETUP — Search bar
-    // ============================================
-    private fun setupSearch() {
-        binding.etSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filterRecords(s?.toString().orEmpty())
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
-    }
-
-    private fun filterRecords(query: String) {
-        if (query.isBlank()) {
-            savedAdapter.submitList(fullList)
-            return
-        }
-        val q = query.trim().lowercase()
-        val filtered = fullList.filter { item ->
-            // Adjust these fields based on what SurveyMergeDetails actually has
-            val parcelMatch = item.parcelNo.toString().contains(q, ignoreCase = true)
-            val uniqueIdMatch = item.uniqueId?.lowercase()?.contains(q) == true
-            parcelMatch || uniqueIdMatch
-        }
-        savedAdapter.submitList(filtered)
-    }
-
-    // ============================================
-    // SETUP — Filter button + FAB
-    // ============================================
-    private fun setupActionButtons() {
-        binding.btnFilter.setOnClickListener {
-            // Aap yahan filter dialog show kar sakte hain
-            // For now, just a placeholder
-            ToastUtil.showShort(context, "Filter options coming soon")
-        }
-
-        binding.fabAddSurvey.setOnClickListener {
-            // Navigate to new survey or parcel selection screen
-            // Adjust target activity per your app flow
-            try {
-                // Example — replace with your actual screen:
-                // startActivity(Intent(this, ParcelSelectionActivity::class.java))
-                finish() // for now go back to previous screen where survey starts
-            } catch (e: Exception) {
-                ToastUtil.showShort(context, "Could not open new survey")
-            }
-        }
+    private fun setupHeaderButtons() {
+        // Back button
+//        binding.btnBack.setOnClickListener {
+//            onBackPressedDispatcher.onBackPressed()
+//        }
+//
+//        // Upload All button in header
+//        binding.btnUploadAll.setOnClickListener {
+//            handleUploadAll()
+//        }
     }
 
     // ============================================
@@ -144,9 +93,8 @@ class SavedRecordsActivity : AppCompatActivity(), SavedItemClickListener {
         database.surveyFormDao().liveTotalPendingCount().observe(this) { totalPendingRecords ->
             val total = totalPendingRecords ?: 0
 
-            // Update both stat cards
-            binding.tvTotalCount.text = total.toString()
-            binding.tvPendingCount.text = total.toString()  // All saved = pending in your case
+            // Update header subtitle
+//            binding.tvHeaderCount.text = if (total == 1) "1 pending" else "$total pending"
 
             // Update details strip
             val areaName = sharedPreferences.getString(
@@ -175,13 +123,7 @@ class SavedRecordsActivity : AppCompatActivity(), SavedItemClickListener {
     // ============================================
     private fun observeViewModel() {
         viewModel.surveys.observe(this) { surveys ->
-            fullList = surveys.orEmpty()
-            val currentQuery = binding.etSearch.text?.toString().orEmpty()
-            if (currentQuery.isBlank()) {
-                savedAdapter.submitList(fullList)
-            } else {
-                filterRecords(currentQuery)
-            }
+            savedAdapter.submitList(surveys.orEmpty())
         }
 
         lifecycleScope.launch {
@@ -307,26 +249,8 @@ class SavedRecordsActivity : AppCompatActivity(), SavedItemClickListener {
     }
 
     // ============================================
-    // OPTIONS MENU — upload all
+    // Upload All — triggered from header icon
     // ============================================
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        // Since we hid the action bar, the menu won't show automatically.
-        // The user can trigger "Upload All" via the filter button or a long-press on FAB if needed.
-        // But we'll keep this for completeness.
-        menuInflater.inflate(R.menu.upload_all_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.upload_all -> {
-                handleUploadAll()
-                return true
-            }
-            else -> return super.onOptionsItemSelected(item)
-        }
-    }
-
     private fun handleUploadAll() {
         if (Utility.checkInternetConnection(this@SavedRecordsActivity)) {
             lifecycleScope.launch {

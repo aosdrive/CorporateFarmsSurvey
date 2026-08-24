@@ -156,6 +156,46 @@
                     android:paddingEnd="44dp"
                     android:spinnerMode="dropdown" />
 
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="6dp"
+                    android:text="Block"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/spinnerBlock"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/spinner_selector"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="44dp"
+                    android:spinnerMode="dropdown" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="6dp"
+                    android:text="Plot"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/spinnerPlot"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/spinner_selector"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="44dp"
+                    android:spinnerMode="dropdown" />
+
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -201,44 +241,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:visibility="gone">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="6dp"
-                        android:text="Block"
-                        android:textColor="#666666"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <Spinner
-                        android:id="@+id/spinnerBlock"
-                        android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="@drawable/spinner_selector"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="44dp"
-                        android:spinnerMode="dropdown" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="6dp"
-                        android:text="Plot"
-                        android:textColor="#666666"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <Spinner
-                        android:id="@+id/spinnerPlot"
-                        android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="@drawable/spinner_selector"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="44dp"
-                        android:spinnerMode="dropdown" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -297,24 +299,75 @@
                         android:paddingEnd="44dp"
                         android:spinnerMode="dropdown" />
 
+<!--                    <TextView-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:paddingBottom="6dp"-->
+<!--                        android:text="Irrigation Source"-->
+<!--                        android:textColor="#666666"-->
+<!--                        android:textSize="13sp"-->
+<!--                        android:textStyle="bold" />-->
+
+<!--                    <Spinner-->
+<!--                        android:id="@+id/spinnerIrrigationSource"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="52dp"-->
+<!--                        android:layout_marginBottom="16dp"-->
+<!--                        android:background="@drawable/spinner_selector"-->
+<!--                        android:paddingStart="16dp"-->
+<!--                        android:paddingEnd="44dp"-->
+<!--                        android:spinnerMode="dropdown" />-->
+
+<!--                    <com.google.android.material.textfield.TextInputLayout-->
+<!--                        android:id="@+id/tilIrrigationQuantity"-->
+<!--                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginTop="4dp"-->
+<!--                        android:layout_marginBottom="16dp"-->
+<!--                        android:hint="Irrigation Source Quantity *"-->
+<!--                        android:visibility="gone"-->
+<!--                        app:boxCornerRadiusBottomEnd="8dp"-->
+<!--                        app:boxCornerRadiusBottomStart="8dp"-->
+<!--                        app:boxCornerRadiusTopEnd="8dp"-->
+<!--                        app:boxCornerRadiusTopStart="8dp"-->
+<!--                        app:boxStrokeColor="@color/forest_green"-->
+<!--                        app:boxStrokeErrorColor="#D32F2F"-->
+<!--                        app:helperText="Enter quantity (e.g., number of tubewells, canal turns, etc.)"-->
+<!--                        app:helperTextTextColor="#999999"-->
+<!--                        app:hintTextColor="@color/forest_green"-->
+<!--                        app:startIconDrawable="@android:drawable/ic_menu_sort_by_size"-->
+<!--                        app:startIconTint="@color/forest_green">-->
+
+<!--                        <com.google.android.material.textfield.TextInputEditText-->
+<!--                            android:id="@+id/etIrrigationQuantity"-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:inputType="number"-->
+<!--                            android:maxLines="1"-->
+<!--                            android:textColor="#333333"-->
+<!--                            android:textSize="15sp" />-->
+<!--                    </com.google.android.material.textfield.TextInputLayout>-->
+
                     <TextView
+                        android:id="@+id/btnSelectIrrigation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingBottom="6dp"
-                        android:text="Irrigation Source"
-                        android:textColor="#666666"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        android:text="Select irrigation source(s)"
+                        android:textColor="#1B5E20"
+                        android:textSize="14sp"
+                        android:padding="14dp"
+                        android:background="@drawable/menu_item_bg"
+                        android:drawableEnd="@drawable/ic_lines"
+                        android:drawableTint="#2E7D32"
+                        android:foreground="?android:attr/selectableItemBackground" />
 
-                    <Spinner
-                        android:id="@+id/spinnerIrrigationSource"
+                    <LinearLayout
+                        android:id="@+id/layoutIrrigationRows"
                         android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="@drawable/spinner_selector"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="44dp"
-                        android:spinnerMode="dropdown" />
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

@@ -3,6 +3,6 @@ object AppConfig {
     const val minSdkVersion = 24
     const val targetSdkVersion = 34
     const val versionCode = 12
-    const val versionName = "3.2.3"
+    const val versionName = "1.0.1"
     const val applicationId = "com.gop.survey.corporatefarm"
 }

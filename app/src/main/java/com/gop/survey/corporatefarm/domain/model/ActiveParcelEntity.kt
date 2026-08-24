@@ -25,6 +25,7 @@ data class ActiveParcelEntity(
     val isActivate: Boolean = true,
     val unitId: Long? = 0L,
     val groupId: Long? = 0L,
+    val isLocallyDrawn: Boolean = false,
 
     // NEW FIELDS from Corperate_parcel
     val plotId: String? = null,

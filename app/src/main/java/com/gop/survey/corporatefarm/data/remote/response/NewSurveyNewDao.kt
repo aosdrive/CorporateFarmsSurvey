@@ -23,7 +23,7 @@ interface NewSurveyNewDao {
     suspend fun totalPendingCount(): Int
 
     @Query("SELECT COUNT(pkId) FROM new_surveys WHERE statusBit = 0")
-    fun liveTotalPendingCount(): Flow<Int> // ✅ Use Flow instead of LiveData
+    fun liveTotalPendingCount(): Flow<Int>
 
 
     @Query("SELECT * FROM new_surveys WHERE parcelId = :parcelId AND statusBit = 0")
@@ -55,4 +55,6 @@ interface NewSurveyNewDao {
     @Query("SELECT * FROM active_parcels WHERE parcelNo = :parcelNo AND mauzaId = :mauzaId AND areaAssigned = :areaName AND isActivate = 1")
     suspend fun getActiveParcelsByParcelNumber(parcelNo: Long, mauzaId: Long, areaName: String): List<ActiveParcelEntity>
 
+    @Query("SELECT DISTINCT parcelId FROM new_surveys WHERE statusBit = 0")
+    suspend fun getPendingParcelIds(): List<Long>
 }

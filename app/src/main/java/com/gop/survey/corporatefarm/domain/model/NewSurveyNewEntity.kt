@@ -33,5 +33,6 @@ data class NewSurveyNewEntity(
     val block: String? = null,
     val plot: String? = null,
     val farm: String? = null,
-    val irrigationSource: String? = null
-)
+    val irrigationSource: String? = null,
+    val irrigationSourceQuantity: String? = null,
+    )

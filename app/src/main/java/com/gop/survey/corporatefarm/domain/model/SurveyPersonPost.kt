@@ -73,6 +73,7 @@ data class CorporateParcelPost(
     val pictures: List<Pictures> = emptyList(),
     val sowingPersons: List<SowingPersonPostDto>? = null,
     val irrigationSource: String? = null,
+    val irrigationSourceQuantity: String? = null,
     @SerializedName("lessors")
     val lessors: List<LessorPostDto> = emptyList(),
     )

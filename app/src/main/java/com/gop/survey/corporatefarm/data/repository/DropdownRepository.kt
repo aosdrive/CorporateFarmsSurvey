@@ -16,6 +16,7 @@ import com.gop.survey.corporatefarm.domain.model.DivisionEntity
 import com.gop.survey.corporatefarm.domain.model.FarmEntity
 import com.gop.survey.corporatefarm.domain.model.IrrigationSourceEntity
 import com.gop.survey.corporatefarm.domain.model.PlotEntity
+import com.gop.survey.corporatefarm.domain.model.PropertyTypeEntity
 import com.gop.survey.corporatefarm.domain.model.SectionEntity
 import com.gop.survey.corporatefarm.domain.model.ZoneEntity
 import javax.inject.Inject
@@ -163,6 +164,56 @@ class DropdownRepository @Inject constructor(
         }
     }
 
+    suspend fun getPropertyTypes(forceRefresh: Boolean = false): List<String> =
+        withContext(Dispatchers.IO) {
+
+            val cached = database.propertyTypeDao().getAll()
+            Log.d("PROP_TYPE", "📦 Cache me ${cached.size} items → ${cached.map { it.value }}")  // ✅
+
+            // Offline / cache-first
+            if (!forceRefresh && cached.isNotEmpty()) {
+                Log.d("PROP_TYPE", "✅ Cache se return kar raha hoon")                            // ✅
+                return@withContext cached.map { it.value }
+            }
+
+            try {
+                Log.d("PROP_TYPE", "🌐 API call kar raha hoon...")                                // ✅
+                val response = serverApi.getPropertyTypes()
+                Log.d("PROP_TYPE", "📡 code=${response.code()}")                                  // ✅
+                Log.d("PROP_TYPE", "📡 body=${response.body()}")                                  // ✅
+                Log.d("PROP_TYPE", "📡 error=${response.errorBody()?.string()}")
+                if (response.isSuccessful) {
+                    val list = response.body().orEmpty()
+                    Log.d("PROP_TYPE", "📥 Server ne ${list.size} items diye")
+                    if (list.isNotEmpty()) {
+                        val entities = list.mapIndexed { index, item ->
+                            PropertyTypeEntity(value = item.value, sortOrder = index)
+                        }
+                        database.propertyTypeDao().clear()
+                        database.propertyTypeDao().insertAll(entities)
+                        val verify = database.propertyTypeDao().getAll()                                      // ✅
+                        Log.d("PROP_TYPE", "💾 Room me save hone ke baad: ${verify.size} items")   // ✅
+                        return@withContext entities.map { it.value }
+                    }
+                }
+                Log.w(TAG, "PropertyTypes API failed: ${response.code()}")
+            } catch (e: Exception) {
+                Log.e("PROP_TYPE", "❌ Exception: ${e.message}", e)
+            }
+
+            // Fallback: cache -> hardcoded default (app kabhi khali na ho)
+            val fallback = if (cached.isNotEmpty()) cached.map { it.value } else DEFAULT_PROPERTY_TYPES
+            Log.d("PROP_TYPE", "⚠️ Fallback use ho raha hai: $fallback")                           // ✅
+            fallback
+        }
+
+    companion object {
+        val DEFAULT_PROPERTY_TYPES = listOf(
+            "Farm Survey", "Builtup", "Solar", "Water Channel",
+            "Farm Roads", "Tubewell", "Turbine", "Other"
+        )
+    }
+
     suspend fun syncUnsyncedVarieties(): Int {
         var syncedCount = 0
         try {
@@ -203,6 +254,9 @@ class DropdownRepository @Inject constructor(
                 // Cache locally for offline use
                 database.zoneDao().insertZones(zoneEntities)
                 Log.d(TAG, "✅ Fetched ${zoneEntities.size} zones from server")
+                val savedCount = database.zoneDao().getAllZones().size
+                Log.d(TAG, "✅ Inserted ${zoneEntities.size} zones, DB now has $savedCount rows")
+
                 Resource.Success(zoneEntities)
             } else {
                 Log.w(TAG, "⚠️ Server returned ${response.code()}, using cached zones")

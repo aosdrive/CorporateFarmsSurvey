@@ -126,7 +126,10 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
     private var selectedLessorType: String = "Single"
     private val allLessors = mutableListOf<LessorEntity>()
     private val selectedLessors = mutableListOf<LessorEntity>()
-
+    private var selectedIrrigationQuantity: String? = null
+    private var propertyTypeList = mutableListOf<String>()
+    private var allIrrigationSources = mutableListOf<String>()
+    private val selectedIrrigation = linkedMapOf<String, String>()
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("tempImagePath", tempImagePath)
@@ -139,6 +142,12 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
         tempImageUri = savedInstanceState.getString("tempImageUri")?.let { Uri.parse(it) }
     }
 
+    companion object {
+        private const val SELECT_BLOCK = "-- Select Block --"
+        private const val SELECT_PLOT = "-- Select Plot --"
+        private const val SELECT_CROP_TYPE = "-- Select Crop Type --"
+        private const val SELECT_VARIETY = "-- Select Variety --"
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySurveyNewBinding.inflate(layoutInflater)
@@ -165,17 +174,20 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
         val parcelLabel = SpannableString("P/N:")
         parcelLabel.setSpan(StyleSpan(Typeface.BOLD), 0, parcelLabel.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         parcelInfoText.append(parcelLabel)
-        parcelInfoText.append("$parcelNo/$subParcelNo\t\t GC= $khewatInfo \t\tArea: $parcelArea\t\tID: $parcelId\t\tOperation: $parcelOperation\t\tparcelOperationValue: $parcelOperationValue")
+        val areaAcresText = parcelArea.toDoubleOrNull()?.let {
+            String.format(Locale.US, "%.4f Acres", it / 43560.0)
+        } ?: parcelArea
+        parcelInfoText.append("$parcelNo/$subParcelNo\t\t GC= $khewatInfo \t\tArea: $areaAcresText\t\tID: $parcelId\t\tOperation: $parcelOperation\t\tparcelOperationValue: $parcelOperationValue")
         binding.tvParcelInfo.text = parcelInfoText
 
         setupSpinners()
-        setupLessorSection()         // ✅ NEW
+        setupLessorSection()
         setupImageSection()
         setupSubmit(parcelId, parcelNo, subParcelNo)
         loadSharedMouzaData()
         syncUnsyncedData()
         setupCascadeDropdowns()
-        loadLessorsFromServer()      // ✅ NEW
+        loadLessorsFromServer()
     }
 
     // ============================================
@@ -388,6 +400,8 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
     // CASCADE DROPDOWNS
     // ============================================
     private fun setupCascadeDropdowns() {
+        binding.spinnerBlock.adapter = makeAdapter(listOf(SELECT_BLOCK))
+        binding.spinnerPlot.adapter = makeAdapter(listOf(SELECT_PLOT))
         loadZones()
     }
 
@@ -535,6 +549,7 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun loadBlocks(farmId: Long) {
+        clearPlotSpinner()
         lifecycleScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
@@ -542,21 +557,27 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
                 }
                 val blocks = when (result) {
                     is Resource.Success -> result.data
-                    is Resource.Error -> emptyList()
-                    is Resource.Loading -> emptyList()
+                    else -> emptyList()
                 }
                 allBlocks.clear(); allBlocks.addAll(blocks)
 
-                val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item,
-                    blocks.map { it.blockName }.ifEmpty { listOf("No blocks available") })
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                binding.spinnerBlock.adapter = adapter
+                // placeholder sab se pehle
+                val items = mutableListOf(SELECT_BLOCK)
+                items.addAll(blocks.map { it.blockName })
+
+                binding.spinnerBlock.onItemSelectedListener = null
+                binding.spinnerBlock.adapter = makeAdapter(items)
+                binding.spinnerBlock.setSelection(0)   // ← kuch bhi selected nahi
+                selectedBlock = null
 
                 binding.spinnerBlock.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                        if (position < allBlocks.size) {
-                            selectedBlock = allBlocks[position]
-                            selectedPlot = null
+                        selectedPlot = null
+                        if (position == 0) {
+                            selectedBlock = null
+                            clearPlotSpinner()
+                        } else {
+                            selectedBlock = allBlocks[position - 1]
                             loadPlots(selectedBlock!!.blockId)
                         }
                     }
@@ -576,19 +597,21 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
                 }
                 val plots = when (result) {
                     is Resource.Success -> result.data
-                    is Resource.Error -> emptyList()
-                    is Resource.Loading -> emptyList()
+                    else -> emptyList()
                 }
                 allPlots.clear(); allPlots.addAll(plots)
 
-                val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item,
-                    plots.map { it.plotName }.ifEmpty { listOf("No plots available") })
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                binding.spinnerPlot.adapter = adapter
+                val items = mutableListOf(SELECT_PLOT)
+                items.addAll(plots.map { it.plotName })
+
+                binding.spinnerPlot.onItemSelectedListener = null
+                binding.spinnerPlot.adapter = makeAdapter(items)
+                binding.spinnerPlot.setSelection(0)
+                selectedPlot = null
 
                 binding.spinnerPlot.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                        if (position < allPlots.size) selectedPlot = allPlots[position]
+                        selectedPlot = if (position == 0) null else allPlots[position - 1]
                     }
                     override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
@@ -596,6 +619,14 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
                 Log.e("CascadeDropdown", "Error loading plots: ${e.message}")
             }
         }
+    }
+
+    private fun clearPlotSpinner() {
+        allPlots.clear()
+        selectedPlot = null
+        binding.spinnerPlot.onItemSelectedListener = null
+        binding.spinnerPlot.adapter = makeAdapter(listOf(SELECT_PLOT))
+        binding.spinnerPlot.setSelection(0)
     }
 
     fun getSelectedCascadeValues(): Map<String, String> = mapOf(
@@ -699,26 +730,58 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
     // ============================================
     private fun setupSpinners() {
         val ownershipStatusList = listOf("Owned", "Leased")
-        val propertyTypeList = listOf("Farm Survey", "Builtup", "Solar", "Water Channel", "Farm Roads", "Tubewell", "Turbine", "Other")
+//        val propertyTypeList = listOf("Farm Survey", "Builtup", "Solar", "Water Channel", "Farm Roads", "Tubewell", "Turbine", "Other")
         val imageTypeList = listOf("Property", "CNIC", "Other Document", "Discrepancy Pic")
 
         binding.spinnerOwnershipStatus.adapter = makeAdapter(ownershipStatusList)
-        binding.spinnerPropertyStatus.adapter = makeAdapter(propertyTypeList)
+//        binding.spinnerPropertyStatus.adapter = makeAdapter(propertyTypeList)
         binding.spinnerImageType.adapter = makeAdapter(imageTypeList)
 
         binding.spinnerPropertyStatus.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selected = parent.getItemAtPosition(position).toString()
-                toggleFarmSurveyFields(selected == "Farm Survey")
+                toggleFarmSurveyFields(selected == "Crop Survey")
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
-
+        loadPropertyTypesFromLocalDb()
         loadCropsFromLocalDb()
         loadCropTypesFromLocalDb()
         loadVarietiesFromLocalDb()
         loadIrrigationSourcesFromLocalDb()
 
+    }
+    private fun loadPropertyTypesFromLocalDb() {
+        lifecycleScope.launch {
+            try {
+                val types = withContext(Dispatchers.IO) {
+                    dropdownRepository.getPropertyTypes(forceRefresh = false)
+                }
+                propertyTypeList.clear()
+                propertyTypeList.addAll(types)
+
+                binding.spinnerPropertyStatus.adapter = makeAdapter(propertyTypeList)
+
+                // ⚠️ Listener adapter ke BAAD lagana zaroori hai (async load ki wajah se)
+                binding.spinnerPropertyStatus.onItemSelectedListener =
+                    object : AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(
+                            parent: AdapterView<*>, view: View?, position: Int, id: Long
+                        ) {
+                            val selected = parent.getItemAtPosition(position).toString()
+                            toggleFarmSurveyFields(selected == "Crop Survey")
+                        }
+                        override fun onNothingSelected(parent: AdapterView<*>) {}
+                    }
+
+                // Default selection: Farm Survey
+                val pos = propertyTypeList.indexOf("Crop Survey")
+                if (pos != -1) binding.spinnerPropertyStatus.setSelection(pos)
+
+            } catch (e: Exception) {
+                ToastUtil.showShort(context, "Error loading property types")
+            }
+        }
     }
 
     private fun makeAdapter(list: List<String>): ArrayAdapter<String> {
@@ -733,7 +796,14 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
             selectedCropType = null
             selectedVariety = null
             selectedSowingDate = null
+            selectedIrrigationQuantity = null
             binding.etSowingDate.setText("")
+            isSettingSpinnerProgrammatically = true
+            if (binding.etCropType.adapter != null) binding.etCropType.setSelection(0)
+            if (binding.etVariety.adapter != null) binding.etVariety.setSelection(0)
+            isSettingSpinnerProgrammatically = false
+            selectedIrrigation.clear()
+            refreshIrrigationRows()
         }
     }
 
@@ -741,7 +811,8 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
         lifecycleScope.launch {
             try {
                 val crops = withContext(Dispatchers.IO) { dropdownRepository.getCrops(forceRefresh = false) }
-                cropList.clear(); cropList.addAll(crops)
+                cropList.clear();
+                cropList.addAll(crops)
                 binding.etCrop.adapter = makeAdapter(cropList)
                 val pos = cropList.indexOf("Sugarcane")
                 binding.etCrop.setSelection(if (pos != -1) pos else 0)
@@ -753,8 +824,14 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
         lifecycleScope.launch {
             try {
                 val cropTypes = withContext(Dispatchers.IO) { dropdownRepository.getCropTypes(forceRefresh = false) }
-                cropTypeList.clear(); cropTypeList.addAll(cropTypes)
+                cropTypeList.clear()
+                cropTypeList.add(SELECT_CROP_TYPE)      // ← index 0
+                cropTypeList.addAll(cropTypes)
                 binding.etCropType.adapter = makeAdapter(cropTypeList)
+                isSettingSpinnerProgrammatically = true
+                binding.etCropType.setSelection(0)
+                isSettingSpinnerProgrammatically = false
+                selectedCropType = null
                 setupCropTypeListener()
             } catch (e: Exception) { ToastUtil.showShort(context, "Error loading crop types") }
         }
@@ -764,8 +841,15 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
         lifecycleScope.launch {
             try {
                 val varieties = withContext(Dispatchers.IO) { dropdownRepository.getVarieties(forceRefresh = false) }
-                varietyList.clear(); varietyList.addAll(varieties); varietyList.add("Other")
+                varietyList.clear()
+                varietyList.add(SELECT_VARIETY)         // ← index 0
+                varietyList.addAll(varieties)
+                varietyList.add("Other")
                 binding.etVariety.adapter = makeAdapter(varietyList)
+                isSettingSpinnerProgrammatically = true
+                binding.etVariety.setSelection(0)
+                isSettingSpinnerProgrammatically = false
+                selectedVariety = null
                 setupVarietyListener()
             } catch (e: Exception) { ToastUtil.showShort(context, "Error loading varieties") }
         }
@@ -777,22 +861,84 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
                 val sources = withContext(Dispatchers.IO) {
                     dropdownRepository.getIrrigationSources(forceRefresh = false)
                 }
-                binding.spinnerIrrigationSource.adapter = makeAdapter(sources)
+                allIrrigationSources.clear()
+                allIrrigationSources.addAll(sources)
             } catch (e: Exception) {
                 ToastUtil.showShort(context, "Error loading irrigation sources")
             }
         }
+
+        binding.btnSelectIrrigation.setOnClickListener { showIrrigationPicker() }
+        refreshIrrigationRows()
     }
 
-    private fun setupVarietyListener() {
-        binding.etVariety.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                if (isSettingSpinnerProgrammatically) return
-                val selected = parent.getItemAtPosition(position).toString()
-                if (selected == "Other") showCustomVarietyInputDialog()
-                else selectedVariety = selected
+    private fun showIrrigationPicker() {
+        if (allIrrigationSources.isEmpty()) {
+            ToastUtil.showShort(context, "No irrigation sources available")
+            return
+        }
+
+        val items = allIrrigationSources.toTypedArray()
+        val checked = BooleanArray(items.size) { selectedIrrigation.containsKey(items[it]) }
+
+        AlertDialog.Builder(this)
+            .setTitle("Irrigation Sources")
+            .setMultiChoiceItems(items, checked) { _, which, isChecked ->
+                checked[which] = isChecked
             }
-            override fun onNothingSelected(parent: AdapterView<*>) {}
+            .setPositiveButton("Done") { _, _ ->
+                // Purani quantities preserve karein
+                val previous = LinkedHashMap(selectedIrrigation)
+                selectedIrrigation.clear()
+                items.forEachIndexed { i, name ->
+                    if (checked[i]) selectedIrrigation[name] = previous[name].orEmpty()
+                }
+                refreshIrrigationRows()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun refreshIrrigationRows() {
+        binding.layoutIrrigationRows.removeAllViews()
+
+        binding.btnSelectIrrigation.text = if (selectedIrrigation.isEmpty())
+            "Select irrigation source(s)"
+        else
+            "${selectedIrrigation.size} source(s) selected"
+
+        selectedIrrigation.keys.toList().forEach { source ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, 8, 0, 0)
+            }
+
+            val label = TextView(this).apply {
+                text = source
+                textSize = 14f
+                setTextColor(ContextCompat.getColor(context, R.color.parcel_green))
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+
+            val qty = EditText(this).apply {
+                hint = "Qty *"
+                inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+                textSize = 14f
+                setText(selectedIrrigation[source])
+                layoutParams = LinearLayout.LayoutParams(220, LinearLayout.LayoutParams.WRAP_CONTENT)
+                addTextChangedListener(object : android.text.TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                    override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                    override fun afterTextChanged(s: android.text.Editable?) {
+                        selectedIrrigation[source] = s?.toString()?.trim().orEmpty()
+                    }
+                })
+            }
+
+            row.addView(label)
+            row.addView(qty)
+            binding.layoutIrrigationRows.addView(row)
         }
     }
 
@@ -800,9 +946,21 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
         binding.etCropType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 if (isSettingSpinnerProgrammatically) return
+                if (position == 0) { selectedCropType = null; return }
                 val selected = parent.getItemAtPosition(position).toString()
-                if (selected == "Other") showCustomCropInputDialog()
-                else selectedCropType = selected
+                if (selected == "Other") showCustomCropInputDialog() else selectedCropType = selected
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+    }
+
+    private fun setupVarietyListener() {
+        binding.etVariety.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                if (isSettingSpinnerProgrammatically) return
+                if (position == 0) { selectedVariety = null; return }
+                val selected = parent.getItemAtPosition(position).toString()
+                if (selected == "Other") showCustomVarietyInputDialog() else selectedVariety = selected
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
@@ -1052,15 +1210,27 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
     }
 
     // ============================================
-    // SUBMIT (✅ UPDATED for lessors)
+    // SUBMIT (UPDATED for lessors)
     // ============================================
     private fun setupSubmit(parcelId: Long, parcelNo: String, subParcelNo: String) {
         binding.btnSubmitSurvey.setOnClickListener {
 
-            val isFarmSurvey = binding.spinnerPropertyStatus.selectedItem.toString() == "Farm Survey"
+            // ===== PREVENT DOUBLE SUBMISSION =====
+            // Re-enable only if a validation fails; on success finish() closes the screen.
+            binding.btnSubmitSurvey.isEnabled = false
 
-            // Sowing date validation
+            // ===== VALIDATION: Property type must be loaded =====
+            val propertyType = binding.spinnerPropertyStatus.selectedItem?.toString().orEmpty()
+            if (propertyType.isBlank()) {
+                binding.btnSubmitSurvey.isEnabled = true
+                ToastUtil.showShort(this, "Property types are still loading. Please wait a moment.")
+                return@setOnClickListener
+            }
+            val isFarmSurvey = propertyType == "Crop Survey"
+
+            // ===== VALIDATION: Sowing date (crop survey only) =====
             if (isFarmSurvey && selectedSowingDate.isNullOrBlank()) {
+                binding.btnSubmitSurvey.isEnabled = true
                 AlertDialog.Builder(this)
                     .setTitle("Sowing Date Required")
                     .setMessage("Please select a sowing date before submitting.")
@@ -1069,8 +1239,20 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
                 return@setOnClickListener
             }
 
-            // ✅ Lessor validation — exactly 1 lessor required
+//            if (isFarmSurvey && selectedCropType.isNullOrBlank()) {
+//                binding.btnSubmitSurvey.isEnabled = true
+//                ToastUtil.showShort(this, "Please select Crop Type")
+//                return@setOnClickListener
+//            }
+//            if (isFarmSurvey && selectedVariety.isNullOrBlank()) {
+//                binding.btnSubmitSurvey.isEnabled = true
+//                ToastUtil.showShort(this, "Please select Variety")
+//                return@setOnClickListener
+//            }
+
+            // ===== VALIDATION: Exactly one lessor =====
             if (selectedLessors.isEmpty()) {
+                binding.btnSubmitSurvey.isEnabled = true
                 AlertDialog.Builder(this)
                     .setTitle("Lessor Required")
                     .setMessage("Please select or add a lessor before submitting.")
@@ -1080,7 +1262,7 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
             }
 
             if (selectedLessors.size > 1) {
-                // Safety check — shouldn't happen but just in case
+                binding.btnSubmitSurvey.isEnabled = true
                 AlertDialog.Builder(this)
                     .setTitle("Invalid Selection")
                     .setMessage("Only one lessor is allowed.")
@@ -1089,63 +1271,71 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
                 return@setOnClickListener
             }
 
-            // Ownership-based count check
             val ownershipStatus = binding.spinnerOwnershipStatus.selectedItem.toString()
-            if (ownershipStatus == "Self" && selectedLessors.size > 1) {
-                AlertDialog.Builder(this)
-                    .setTitle("Too Many Lessors")
-                    .setMessage("'Self' ownership allows only 1 lessor.")
-                    .setPositiveButton("OK", null)
-                    .show()
-                return@setOnClickListener
-            }
-            if (ownershipStatus == "On Lease" && selectedLessors.size > 2) {
-                AlertDialog.Builder(this)
-                    .setTitle("Too Many Lessors")
-                    .setMessage("'On Lease' ownership allows maximum 2 lessors.")
-                    .setPositiveButton("OK", null)
-                    .show()
-                return@setOnClickListener
+
+            // ===== VALIDATION: Irrigation (crop survey only) =====
+            if (isFarmSurvey) {
+                if (selectedIrrigation.isEmpty()) {
+                    binding.btnSubmitSurvey.isEnabled = true
+                    AlertDialog.Builder(this)
+                        .setTitle("Irrigation Source Required")
+                        .setMessage("Please select at least one irrigation source.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@setOnClickListener
+                }
+
+                val missing = selectedIrrigation.filterValues { it.isBlank() }.keys
+                if (missing.isNotEmpty()) {
+                    binding.btnSubmitSurvey.isEnabled = true
+                    AlertDialog.Builder(this)
+                        .setTitle("Quantity Required")
+                        .setMessage("Please enter a quantity for: ${missing.joinToString(", ")}")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@setOnClickListener
+                }
             }
 
-            // Image validation
-            if (viewModel.surveyImages.value.isEmpty()) {
-                AlertDialog.Builder(this)
-                    .setTitle("Image Required")
-                    .setMessage("Please add at least one image before submitting.")
-                    .setPositiveButton("OK", null)
-                    .show()
-                return@setOnClickListener
-            }
+            // ===== VALIDATION: At least one image =====
+//            if (viewModel.surveyImages.value.isNullOrEmpty()) {
+//                binding.btnSubmitSurvey.isEnabled = true
+//                AlertDialog.Builder(this)
+//                    .setTitle("Image Required")
+//                    .setMessage("Please add at least one image before submitting the survey.")
+//                    .setPositiveButton("OK", null)
+//                    .show()
+//                return@setOnClickListener
+//            }
 
-            val parcelOperation = intent.getStringExtra("parcelOperation") ?: ""
-            val parcelOperationValue = when (parcelOperation) {
-                "Split" -> intent.getStringExtra("parcelOperationValue") ?: ""
-                "MultiMerge" -> intent.getStringExtra("parcelOperationValue") ?: ""
-                "Merge" -> intent.getStringExtra("parcelOperationValueHi") ?: ""
-                else -> intent.getStringExtra("parcelOperationValueHi") ?: ""
-            }
+            // ===== ALL VALIDATIONS PASSED =====
+            // Every parcel in this app is drawn by the surveyor, so the operation is
+            // always "New" and the server creates a fresh Corperate_Parcel row.
+            val tehsil = sharedPreferences.getString(
+                Constants.SHARED_PREF_USER_SELECTED_AREA_NAME,
+                Constants.SHARED_PREF_DEFAULT_STRING
+            ).orEmpty()
 
             val cascadeValues = getSelectedCascadeValues()
+
             val survey = NewSurveyNewEntity(
                 parcelId = parcelId,
                 parcelNo = parcelNo,
-                subParcelNo = subParcelNo,
-                propertyType = binding.spinnerPropertyStatus.selectedItem.toString(),
+                subParcelNo = "",
+                propertyType = propertyType,
                 ownershipStatus = ownershipStatus,
-                variety = if (isFarmSurvey) selectedVariety ?: binding.etVariety.selectedItem.toString() else "",
+                variety = if (isFarmSurvey) selectedVariety.orEmpty() else "",
                 crop = if (isFarmSurvey) binding.etCrop.selectedItem.toString() else "",
-                cropType = if (isFarmSurvey) selectedCropType ?: binding.etCropType.selectedItem.toString() else "",
+                cropType = if (isFarmSurvey) selectedCropType.orEmpty() else "",
                 year = binding.etYear.text.toString(),
-                irrigationSource = if (isFarmSurvey) binding.spinnerIrrigationSource.selectedItem.toString() else null,
-                remarks = binding.etRemarks.text.toString(),
-                parcelOperation = parcelOperation,
-                parcelOperationValue = parcelOperationValue,
+                irrigationSource = if (isFarmSurvey)
+                    selectedIrrigation.keys.joinToString(", ") else null,
+                irrigationSourceQuantity = if (isFarmSurvey)
+                    selectedIrrigation.entries.joinToString(", ") { "${it.key}:${it.value}" } else null,
+                parcelOperation = "New",
+                parcelOperationValue = "Drawn",
                 mauzaId = 0L,
-                areaName = sharedPreferences.getString(
-                    Constants.SHARED_PREF_USER_SELECTED_AREA_NAME,
-                    Constants.SHARED_PREF_DEFAULT_STRING
-                ).orEmpty(),
+                areaName = tehsil,
                 sowingDate = if (isFarmSurvey) selectedSowingDate else null,
                 zone = cascadeValues["zone"],
                 division = cascadeValues["division"],
@@ -1156,52 +1346,53 @@ class SurveyActivity : AppCompatActivity(), SensorEventListener {
             )
 
             lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    val realMauzaId = database.activeParcelDao().getParcelById(parcelId)?.mauzaId
-                        ?: sharedPreferences.getLong(
-                            Constants.SHARED_PREF_USER_SELECTED_MAUZA_ID,
-                            Constants.SHARED_PREF_DEFAULT_INT.toLong()
-                        )
+                try {
+                    withContext(Dispatchers.IO) {
+                        val surveyId = database.newSurveyNewDao().insertSurvey(survey)
+                        Log.d("SurveyActivity", "=== SAVING SURVEY $surveyId ===")
 
-                    val surveyId = database.newSurveyNewDao().insertSurvey(survey.copy(mauzaId = realMauzaId))
-                    Log.d("SurveyActivity", "=== SAVING SURVEY $surveyId ===")
-
-                    // ✅ Save selected lessors to new_survey_lessors table
-                    selectedLessors.forEach { lessor ->
-                        val entry = SurveyLessorEntity(
-                            surveyId = surveyId,
-                            parcelId = parcelId,
-                            parcelNo = parcelNo,
-                            subParcelNo = subParcelNo,
-                            lessorId = lessor.id,
-                            lessorName = lessor.name,
-                            lessorCode = lessor.code ?: "",
-                            lessorType = selectedLessorType
-                        )
-                        database.surveyLessorDao().insert(entry)
-                        Log.d("SurveyActivity", "Saved lessor: ${lessor.name} (id=${lessor.id})")
-                    }
-
-                    // Save images
-                    viewModel.surveyImages.value!!.forEach {
-                        it.surveyId = surveyId
-                        database.imageDao().insertImage(it)
-                    }
-
-                    database.activeParcelDao().updateParcelSurveyStatus(2, surveyId, parcelId)
-                    database.tempSurveyLogDao().insertLog(TempSurveyLogEntity(
-                        parcelId = parcelId, parcelNo = parcelNo, subParcelNo = subParcelNo
-                    ))
-
-                    if (parcelOperation.equals("Merge", ignoreCase = true) && parcelOperationValue.isNotBlank()) {
-                        val parcelIdList = parcelOperationValue.split(",").mapNotNull { it.trim().toLongOrNull() }
-                        parcelIdList.forEach { id ->
-                            database.activeParcelDao().updateParcelSurveyStatus(2, surveyId, id)
+                        // Save the selected lessor
+                        selectedLessors.forEach { lessor ->
+                            database.surveyLessorDao().insert(
+                                SurveyLessorEntity(
+                                    surveyId = surveyId,
+                                    parcelId = parcelId,
+                                    parcelNo = parcelNo,
+                                    subParcelNo = "",
+                                    lessorId = lessor.id,
+                                    lessorName = lessor.name,
+                                    lessorCode = lessor.code ?: "",
+                                    lessorType = selectedLessorType
+                                )
+                            )
+                            Log.d("SurveyActivity", "Saved lessor: ${lessor.name} (id=${lessor.id})")
                         }
+
+                        // Save images
+                        viewModel.surveyImages.value?.forEach {
+                            it.surveyId = surveyId
+                            database.imageDao().insertImage(it)
+                        }
+
+                        // Mark the drawn parcel as surveyed
+                        database.activeParcelDao().updateParcelSurveyStatus(2, surveyId, parcelId)
+
+                        database.tempSurveyLogDao().insertLog(
+                            TempSurveyLogEntity(
+                                parcelId = parcelId,
+                                parcelNo = parcelNo,
+                                subParcelNo = ""
+                            )
+                        )
                     }
+
+                    ToastUtil.showShort(context, "Survey saved on this device.")
+                    finish()
+                } catch (e: Exception) {
+                    Log.e("SurveyActivity", "Error saving survey: ${e.message}", e)
+                    binding.btnSubmitSurvey.isEnabled = true
+                    ToastUtil.showShort(context, "The survey could not be saved: ${e.message}")
                 }
-                ToastUtil.showShort(context, "Survey saved locally")
-                finish()
             }
         }
     }

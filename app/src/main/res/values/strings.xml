@@ -3,7 +3,7 @@
     <string name="government_of_punjab">Government of the Punjab</string>
     <string name="password">Password</string>
 
-    <string name="error_username_field_empty">CNIC field can\'t be empty</string>
+    <string name="error_username_field_empty">Username field can\'t be empty</string>
     <string name="error_otp_field_empty">OTP field can\'t be empty</string>
     <string name="error_password_field_empty">Password field can\'t be empty</string>
     <string name="invalid_password">Password must be at least 8 characters.</string>
@@ -26,7 +26,7 @@
 
     <string name="app_name">Corporate Parcels</string>
     <string name="header_title">Corporate Parcels</string>
-    <string name="footer_main_menu">1.0.0 Version | Developed by - ZD</string>
+    <string name="footer_main_menu">Version | Developed by - ZD</string>
     <!--    <string name="footer_main_menu">Version \nPunjab Urban Land Systems Enhancement</string>-->
     <!--    <string name="footer_main_loginn">Version</string>-->
     <string name="footer_main_login">Version \n©2025 Developed by - PICS</string>
@@ -340,5 +340,7 @@
     <string name="respondent_mobile">Respondent Mobile:</string>
     <string name="respondent_relation_status">Respondent Status:</string>
     <string name="theme">theme</string>
+    <string name="download_boundary">Download Boundary</string>
+    <string name="select_a_tehsil">Select a Tehsil</string>
 
 </resources>

@@ -14,6 +14,7 @@ import com.gop.survey.corporatefarm.data.remote.response.NewSurveyNewDao
 import com.gop.survey.corporatefarm.data.remote.response.SurveyImageDao
 import com.gop.survey.corporatefarm.data.remote.response.SurveyPersonDao
 import com.gop.survey.corporatefarm.domain.model.ActiveParcelEntity
+import com.gop.survey.corporatefarm.domain.model.AoiBoundaryEntity
 import com.gop.survey.corporatefarm.domain.model.BlockEntity
 import com.gop.survey.corporatefarm.domain.model.CropEntity
 import com.gop.survey.corporatefarm.domain.model.CropTypeEntity
@@ -27,6 +28,7 @@ import com.gop.survey.corporatefarm.domain.model.NewSurveyNewEntity
 import com.gop.survey.corporatefarm.domain.model.NotAtHomeSurveyFormEntity
 import com.gop.survey.corporatefarm.domain.model.ParcelEntity
 import com.gop.survey.corporatefarm.domain.model.PlotEntity
+import com.gop.survey.corporatefarm.domain.model.PropertyTypeEntity
 import com.gop.survey.corporatefarm.domain.model.SectionEntity
 import com.gop.survey.corporatefarm.domain.model.SowingPersonEntity
 import com.gop.survey.corporatefarm.domain.model.StatusConverter
@@ -66,8 +68,10 @@ import com.gop.survey.corporatefarm.domain.model.ZoneEntity
         PlotEntity::class,
         LessorEntity::class,
         SurveyLessorEntity::class,
-        IrrigationSourceEntity::class],
-    version = 31,
+        IrrigationSourceEntity::class,
+        PropertyTypeEntity::class,
+        AoiBoundaryEntity::class ],
+    version = 34,
     exportSchema = false
 )
 @TypeConverters(StatusConverter::class)
@@ -97,7 +101,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun lessorDao(): LessorDao
     abstract fun surveyLessorDao(): SurveyLessorDao
     abstract fun irrigationSourceDao(): IrrigationSourceDao
-
+    abstract fun propertyTypeDao(): PropertyTypeDao
+    abstract fun aoiBoundaryDao(): AoiBoundaryDao
     companion object {
 
         @Volatile
@@ -135,6 +140,8 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(migration23to24)
                     .addMigrations(migration24to25)
                     .addMigrations(migration27to28)
+                    .addMigrations(migration28to29)
+                    .addMigrations(migration29to30)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
@@ -674,5 +681,23 @@ val migration24to25 = object : Migration(24, 25) {
 val migration27to28 = object : Migration(27, 28) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE new_surveys ADD COLUMN irrigationSource TEXT DEFAULT NULL")
+    }
+}
+val migration28to29 = object : Migration(28, 29) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            "ALTER TABLE new_surveys ADD COLUMN irrigationSourceQuantity TEXT DEFAULT NULL"
+        )
+    }
+}
+
+val migration29to30 = object : Migration(29, 30) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS property_types (
+                value TEXT NOT NULL PRIMARY KEY,
+                sortOrder INTEGER NOT NULL DEFAULT 0
+            )
+        """.trimIndent())
     }
 }
