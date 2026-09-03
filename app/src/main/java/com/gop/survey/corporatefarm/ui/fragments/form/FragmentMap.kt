@@ -63,6 +63,7 @@ import com.gop.survey.corporatefarm.data.local.AppDatabase
 import com.gop.survey.corporatefarm.databinding.FragmentMapBinding
 import com.gop.survey.corporatefarm.domain.model.ActiveParcelEntity
 import com.gop.survey.corporatefarm.presentation.form.SharedFormViewModel
+import com.gop.survey.corporatefarm.presentation.util.SnapUtils
 import com.gop.survey.corporatefarm.presentation.util.ToastUtil
 import com.gop.survey.corporatefarm.ui.activities.MenuActivity
 import com.gop.survey.corporatefarm.ui.activities.SurveyActivity
@@ -107,6 +108,9 @@ class FragmentMap : Fragment() {
     private lateinit var viewpointListener: ViewpointChangedListener
     private lateinit var drawController: ParcelDrawController
     private var boundaryUnion: Geometry? = null
+    private var snapTargets: List<Polygon> = emptyList()
+    private var snapTargetsSr: com.esri.arcgisruntime.geometry.SpatialReference? = null
+    private val snapToleranceDp = 24.0
     private fun currentTehsil(): String =
         sharedPreferences.getString(Constants.SHARED_PREF_USER_SELECTED_MAUZA_NAME, "") ?: ""
 
@@ -146,7 +150,8 @@ class FragmentMap : Fragment() {
 
         drawController = ParcelDrawController(
             mapView = binding.parcelMapview,
-            isInsideExistingParcel = { point -> isPointInsideExistingParcel(point) }
+            isInsideExistingParcel = { point -> isPointInsideExistingParcel(point) },
+            snapPoint = { point -> snapPoint(point) }
         )
     }
 
@@ -835,6 +840,8 @@ class FragmentMap : Fragment() {
     }
 
     private fun refreshMap() {
+        snapTargets = emptyList()
+        snapTargetsSr = null
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 if (::parcelOverlay.isInitialized) parcelOverlay.graphics.clear()
@@ -946,5 +953,34 @@ class FragmentMap : Fragment() {
         }
 
         else -> super.onOptionsItemSelected(item)
+    }
+
+    private fun snapTargetsFor(sr: com.esri.arcgisruntime.geometry.SpatialReference): List<Polygon> {
+        if (snapTargetsSr == sr && snapTargets.isNotEmpty()) return snapTargets
+
+        if (!::parcelOverlay.isInitialized) return emptyList()
+
+        snapTargets = parcelOverlay.graphics.mapNotNull { g ->
+            val poly = g.geometry as? Polygon ?: return@mapNotNull null
+            if (poly.spatialReference == sr) poly
+            else GeometryEngine.project(poly, sr) as? Polygon
+        }
+        snapTargetsSr = sr
+        Log.d(TAG, "Snap targets built: ${snapTargets.size}")
+        return snapTargets
+    }
+
+    private fun snapPoint(raw: Point): Point {
+        val sr = raw.spatialReference ?: return raw
+        val tolerance = binding.parcelMapview.unitsPerDensityIndependentPixel * snapToleranceDp
+        if (tolerance <= 0.0) return raw
+
+        drawController.placedPoints.forEach { p ->
+            if (GeometryEngine.distanceBetween(p, raw) <= tolerance) {
+                return p
+            }
+        }
+
+        return SnapUtils.snap(raw, snapTargetsFor(sr), tolerance)
     }
 }

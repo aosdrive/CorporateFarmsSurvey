@@ -11,7 +11,8 @@ import com.esri.arcgisruntime.mapping.view.MapView
 
 class ParcelDrawController(
     private val mapView: MapView,
-    private val isInsideExistingParcel: (Point) -> Boolean = { false }
+    private val isInsideExistingParcel: (Point) -> Boolean,
+    private val snapPoint: (Point) -> Point = { it }
 ) {
 
     companion object {
@@ -25,6 +26,7 @@ class ParcelDrawController(
     var boundary: Geometry? = null
 
     private val points = mutableListOf<Point>()
+    val placedPoints: List<Point> get() = points
 
     var isActive: Boolean = false
         private set
@@ -62,15 +64,16 @@ class ParcelDrawController(
 
     /** Validates the tap and, if acceptable, adds it as a vertex. */
     fun addPoint(mapPoint: Point): DrawResult {
-        if (!GeometryUtils.contains(boundary, mapPoint)) {
+        val point = snapPoint(mapPoint)
+        if (!GeometryUtils.contains(boundary, point)) {
             return DrawResult.OutsideBoundary
         }
 
-        if (isInsideExistingParcel(mapPoint)) {
+        if (isInsideExistingParcel(point)) {
             return DrawResult.InsideExistingParcel
         }
 
-        points.add(mapPoint)
+        points.add(point)
         refreshPreview()
         return DrawResult.PointAdded(points.size)
     }
