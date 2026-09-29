@@ -154,7 +154,46 @@ class MenuActivity : BaseActivity() {
                     )
                     return@setOnClickListener
                 }
-                fetchAndShowTehsilDialog()
+
+                lifecycleScope.launch {
+                    // Pending (un-uploaded) records check
+                    val pending = withContext(Dispatchers.IO) {
+                        database.newSurveyNewDao().totalPendingCount()
+                    }
+
+                    if (pending > 0) {
+                        val recordWord = if (pending == 1) "record" else "records"
+
+                        val dialog = AlertDialog.Builder(context)
+                            .setTitle("Sync Blocked")
+                            .setCancelable(false)
+                            .setMessage(
+                                "You have $pending saved $recordWord that has not been uploaded yet.\n\n" +
+                                        "You cannot sync new data until these $recordWord are either uploaded " +
+                                        "or deleted from Saved Records."
+                            )
+                            .setPositiveButton("Go to Saved Records") { _, _ ->
+                                startActivity(
+                                    Intent(this@MenuActivity, NewSavedRecordsActivity::class.java)
+                                )
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .create()
+
+                        dialog.show()
+
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE)?.apply {
+                            textSize = 16f
+                            setTypeface(android.graphics.Typeface.DEFAULT_BOLD)
+                        }
+                        dialog.getButton(DialogInterface.BUTTON_NEGATIVE)?.apply {
+                            textSize = 16f
+                            setTypeface(android.graphics.Typeface.DEFAULT_BOLD)
+                        }
+                        return@launch
+                    }
+                    fetchAndShowTehsilDialog()
+                }
             }
 
             // My Boundaries — switch between downloaded tehsils
@@ -308,6 +347,7 @@ class MenuActivity : BaseActivity() {
                     restored > 0 -> ToastUtil.showShort(
                         this@MenuActivity, "$restored surveyed parcel(s) restored."
                     )
+
                     restored == 0 -> ToastUtil.showShort(
                         this@MenuActivity, "No parcels have been surveyed in this tehsil yet."
                     )
@@ -781,7 +821,8 @@ class MenuActivity : BaseActivity() {
                 lifecycleScope.launch {
                     if (Utility.checkInternetConnection(this@MenuActivity)) {
                         Utility.showProgressAlertDialog(this@MenuActivity, "Refreshing parcels...")
-                        val token = sharedPreferences.getString(Constants.SHARED_PREF_TOKEN, "") ?: ""
+                        val token =
+                            sharedPreferences.getString(Constants.SHARED_PREF_TOKEN, "") ?: ""
                         syncSurveyedParcelsForTehsil(token, picked.tehsil)
                         Utility.dismissProgressAlertDialog()
                     }

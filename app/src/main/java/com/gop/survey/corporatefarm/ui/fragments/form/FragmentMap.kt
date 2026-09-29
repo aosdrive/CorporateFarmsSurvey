@@ -65,6 +65,7 @@ import com.gop.survey.corporatefarm.domain.model.ActiveParcelEntity
 import com.gop.survey.corporatefarm.presentation.form.SharedFormViewModel
 import com.gop.survey.corporatefarm.presentation.util.SnapUtils
 import com.gop.survey.corporatefarm.presentation.util.ToastUtil
+import com.gop.survey.corporatefarm.presentation.util.TraceUtils
 import com.gop.survey.corporatefarm.ui.activities.MenuActivity
 import com.gop.survey.corporatefarm.ui.activities.SurveyActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -113,6 +114,9 @@ class FragmentMap : Fragment() {
     private val snapToleranceDp = 24.0
     private fun currentTehsil(): String =
         sharedPreferences.getString(Constants.SHARED_PREF_USER_SELECTED_MAUZA_NAME, "") ?: ""
+    private var traceEnabled = false
+    private var lastTraceHit: TraceUtils.RingHit? = null
+    private var traceGraph: TraceUtils.TraceGraph? = null
 
     // ==================================================================
     // LIFECYCLE
@@ -301,7 +305,6 @@ class FragmentMap : Fragment() {
         }
     }
 
-    /** Draws each parcel and returns the polygons for extent calculation. */
     private suspend fun renderParcels(parcels: List<ActiveParcelEntity>): List<Polygon> {
         val polygons = mutableListOf<Polygon>()
 
@@ -404,6 +407,31 @@ class FragmentMap : Fragment() {
         btnDoneDraw.setOnClickListener { saveDrawnPolygon() }
         btnCancelDraw.setOnClickListener { exitDrawMode() }
         btnUndoDrawPoint.setOnClickListener { undoLastPoint() }
+        btnTrace.setOnClickListener { toggleTrace() }
+    }
+
+    private fun toggleTrace() {
+        traceEnabled = !traceEnabled
+        lastTraceHit = null
+        binding.btnTrace.setBackgroundColor(
+            android.graphics.Color.parseColor(if (traceEnabled) "#2196F3" else "#607D8B")
+        )
+        ToastUtil.showShort(
+            requireContext(),
+            if (traceEnabled) "Trace on: tap two points on an existing parcel edge to follow it."
+            else "Trace off"
+        )
+    }
+
+    private fun traceEpsilon(): Double =
+        binding.parcelMapview.unitsPerDensityIndependentPixel * 0.5
+
+    private fun refreshLastTraceHit() {
+        val last = drawController.placedPoints.lastOrNull()
+        val sr = last?.spatialReference
+        lastTraceHit = if (last != null && sr != null)
+            TraceUtils.locate(last, snapTargetsFor(sr), traceEpsilon())
+        else null
     }
 
     private fun addParcelGraphics(parcel: ActiveParcelEntity, polygon: Polygon) {
@@ -473,6 +501,7 @@ class FragmentMap : Fragment() {
 
     private fun exitDrawMode() {
         drawController.cancel()
+        lastTraceHit = null
         binding.layoutDrawControls.visibility = View.GONE
         binding.fabStartDraw.visibility = View.VISIBLE
     }
@@ -480,24 +509,47 @@ class FragmentMap : Fragment() {
     private fun undoLastPoint() {
         if (!drawController.undoLastPoint()) {
             ToastUtil.showShort(requireContext(), "There are no points to undo.")
+        } else if (traceEnabled) {
+            refreshLastTraceHit()
         }
     }
 
     private fun addDrawPoint(mapPoint: Point) {
+        val sr = mapPoint.spatialReference
+        var hit: TraceUtils.RingHit? = null
+
+        if (traceEnabled && sr != null) {
+            val snapped = snapPoint(mapPoint)
+            val targets = snapTargetsFor(sr)
+            hit = TraceUtils.locate(snapped, targets, traceEpsilon())
+
+            val prev = lastTraceHit
+            if (hit != null && prev != null) {
+                val path = traceGraph?.path(prev, hit)
+                if (path != null) {
+                    for (p in path) {
+                        val r = drawController.addPoint(p)
+                        if (r !is DrawResult.PointAdded) {
+                            ToastUtil.showShort(requireContext(), "Trace stopped: a vertex is outside the boundary.")
+                            lastTraceHit = null
+                            return
+                        }
+                    }
+                }
+            }
+        }
+
         when (val result = drawController.addPoint(mapPoint)) {
-            is DrawResult.PointAdded ->
+            is DrawResult.PointAdded -> {
+                lastTraceHit = if (traceEnabled) hit else null
                 ToastUtil.showShort(requireContext(), "Point ${result.pointCount} added")
-
+            }
             is DrawResult.OutsideBoundary -> ToastUtil.showShort(
-                requireContext(),
-                "That point is outside the boundary. Please tap inside it."
+                requireContext(), "That point is outside the boundary. Please tap inside it."
             )
-
             is DrawResult.InsideExistingParcel -> ToastUtil.showLong(
-                requireContext(),
-                "You cannot start a parcel inside an existing one."
+                requireContext(), "You cannot start a parcel inside an existing one."
             )
-
             else -> Unit
         }
     }
@@ -842,6 +894,9 @@ class FragmentMap : Fragment() {
     private fun refreshMap() {
         snapTargets = emptyList()
         snapTargetsSr = null
+        traceGraph = null
+        lastTraceHit = null
+
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 if (::parcelOverlay.isInitialized) parcelOverlay.graphics.clear()
@@ -966,6 +1021,7 @@ class FragmentMap : Fragment() {
             else GeometryEngine.project(poly, sr) as? Polygon
         }
         snapTargetsSr = sr
+        traceGraph = TraceUtils.TraceGraph(snapTargets, mergeTol = 0.05)
         Log.d(TAG, "Snap targets built: ${snapTargets.size}")
         return snapTargets
     }

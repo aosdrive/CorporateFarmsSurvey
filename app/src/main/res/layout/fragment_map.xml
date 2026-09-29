@@ -347,6 +347,19 @@
         android:visibility="gone">
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTrace"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="Trace"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            app:backgroundTint="#607D8B"
+            app:cornerRadius="8dp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnUndoDrawPoint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
